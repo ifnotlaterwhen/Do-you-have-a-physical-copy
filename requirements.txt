@@ -1,5 +1,4 @@
 pytest
 mysql-connector-python
-requests
 flask
 python-dotenv
