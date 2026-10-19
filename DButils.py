@@ -1,4 +1,3 @@
-
 # DButils.py handles all DB queries
 # Reese's note: I think this is where we can use OOP?
 
@@ -16,4 +15,3 @@ class FilmDB:
 
     # keep adding methods that relates to movies here.
     # We can have a separate class for subscriptions?
-
