@@ -21,6 +21,3 @@ Hey, it's me Carina. Looking forward to getting started with the group project. 
 ## Stéphanie Intro
 Hey, I'm Stéphanie. And I'm just here for the good vibes.
 Let's go Tech Girlies
-
-##Roxann Intro 
-Hi everyone I'm Roxann and I am excited to be a part of this project. 
