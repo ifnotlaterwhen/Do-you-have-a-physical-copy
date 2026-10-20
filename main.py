@@ -11,7 +11,7 @@ def run():
         elif choice == 2:
             result = get_recommendatoins()
         elif choice == 3:
-            result = find_stream()
+            result = how_watch()
         elif choice == 4:
             result = log_physical()
         elif choice == 5:
@@ -58,12 +58,15 @@ def return_to_menu():
         return True
             
 
-
 #Reese's note to all: 
 # the functions below should call API routes defined in app.py
 # the routes defined in app.py should call funcitons in DButils to actually query the DB
 # Since we don't have the above defined yet, please write placeholder functions in both app.py and DButils.py
 # See show_DB for example of placeholders
+
+# ===================================================================
+#                        SEE WATCHED FILMS
+# ===================================================================
 
 def show_DB():
     # Reese's note: I realised we don't have a fuction for users to get an overview of their movies
@@ -73,26 +76,41 @@ def show_DB():
     all_movies = requests.get("http://127.0.0.1:8888/api/all") #See app.py for this route
     pprint(all_movies.json())
 
-
+# ===================================================================
+#                        GET RECOMMENDATION
+# ===================================================================
 
 #Leave it for now
 def get_recommendatoins():
     # should return a number of movies based on watch history 
     pass
 
+# ===================================================================
+#                          HOW TO WATCH
+# ===================================================================
+
 #Carina
-def find_stream():
+def how_watch():
     # this should call the TMDB api
     # this should allow users to provide the film title
     # should we consider resuability, like when/if the users go to a specific movie info page, 
     # they should be able to call this function too?
+    # need to also note if any physical copy, and what format(s)
     pass
+
+# ===================================================================
+#                         ADD PHYSICAL COPY
+# ===================================================================
 
 #Reid
 def log_physical(): 
     # Updates the physical copy column of the movie passed in as argument if it already exists in the DB
     # Add a new movie to DB with the physical copy column set to True
     pass
+
+# ===================================================================
+#                         ADD WATCHED FILM
+# ===================================================================
 
 #Stéphanie
 def add_films():
@@ -105,6 +123,10 @@ def add_films():
     #   then call log_physical() to handle it .
     # Reese's message to Stéphanie: Lmk your thoughts.
     pass
+
+# ===================================================================
+#                         SUBSCRIPTIONS
+# ===================================================================
 
 def view_subscription():
     # queries the DB to show a list of subscribed services
