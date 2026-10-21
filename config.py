@@ -1,25 +1,32 @@
 # set up DB here with .env
 # define a class for the DB manager
-# export two instances of the class, one per database
+# export an instance of the class
 
-import mysql.connector, os
+import os, mysql.connector 
 from dotenv import load_dotenv
 
 load_dotenv()
 
 class DB_manager:
     def __init__(self, database):
-        self.config = config
+        self.config = {
+            "host" : os.getenv("host"),
+            "port" : os.getenv("port"),
+            "user" : os.getenv("user"),
+            "password" : os.getenv("password"),
+            "database" : database
+        }
+        self.connection = None
 
     def get_connection(self):
-        connection = None
+        
 
         try:
-            connection = mysql.connector.connect(**config)
+            self.connection = mysql.connector.connect(**self.config)
 
-            if connection.is_connected():
+            if self.connection.is_connected():
                 print("Connection Established")
-                return connection
+                return self.connection
             
             else:
                 print("Connection Failed") 
@@ -28,4 +35,9 @@ class DB_manager:
             print(f"Connection Error: {e}") 
             return None
 
-manager_instance = DB_manager()
+    def close_connection(self):
+        if self.connection and self.connection.is_connected(): 
+            self.connection.close()
+            print("Connection Closed")
+
+manager_instance = DB_manager("database_name")
