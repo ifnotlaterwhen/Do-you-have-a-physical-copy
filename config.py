@@ -8,19 +8,17 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class DB_manager:
-    def __init__(self, database):
+    def __init__(self):
         self.config = {
-            "host" : os.getenv("host"),
-            "port" : os.getenv("port"),
-            "user" : os.getenv("user"),
-            "password" : os.getenv("password"),
-            "database" : database
+            "host" : os.getenv("DB_HOST"),
+            "port" : os.getenv("DB_PORT"),
+            "user" : os.getenv("DB_USER"),
+            "password" : os.getenv("DB_PW")
         }
         self.connection = None
 
     def get_connection(self):
         
-
         try:
             self.connection = mysql.connector.connect(**self.config)
 
@@ -29,15 +27,12 @@ class DB_manager:
                 return self.connection
             
             else:
-                print("Connection Failed") 
-    
+                raise RuntimeError("Connection Failed")
+
         except mysql.connector.Error as e: 
-            print(f"Connection Error: {e}") 
-            return None
+            raise RuntimeError(f"Connection faild: {e}")
 
     def close_connection(self):
         if self.connection and self.connection.is_connected(): 
             self.connection.close()
             print("Connection Closed")
-
-manager_instance = DB_manager("database_name")

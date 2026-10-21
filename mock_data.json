@@ -1,0 +1,410 @@
+{
+  "my_films": [
+    {
+      "my_film_id": 1,
+      "watched": true,
+      "dvd_owned": false,
+      "bluray_owned": false,
+      "4k_bluray_owned": true
+    },
+    {
+      "my_film_id": 2,
+      "watched": true,
+      "dvd_owned": false,
+      "bluray_owned": true,
+      "4k_bluray_owned": false
+    },
+    {
+      "my_film_id": 3,
+      "watched": true,
+      "dvd_owned": false,
+      "bluray_owned": false,
+      "4k_bluray_owned": false
+    },
+    {
+      "my_film_id": 4,
+      "watched": true,
+      "dvd_owned": true,
+      "bluray_owned": false,
+      "4k_bluray_owned": false
+    },
+    {
+      "my_film_id": 5,
+      "watched": false,
+      "dvd_owned": false,
+      "bluray_owned": false,
+      "4k_bluray_owned": false
+    },
+    {
+      "my_film_id": 6,
+      "watched": true,
+      "dvd_owned": false,
+      "bluray_owned": true,
+      "4k_bluray_owned": false
+    },
+    {
+      "my_film_id": 7,
+      "watched": false,
+      "dvd_owned": false,
+      "bluray_owned": false,
+      "4k_bluray_owned": true
+    },
+    {
+      "my_film_id": 8,
+      "watched": true,
+      "dvd_owned": false,
+      "bluray_owned": false,
+      "4k_bluray_owned": true
+    }
+  ],
+  "film_info": [
+    {
+      "film_id": 1,
+      "my_film_id": 1,
+      "api_film_TMDB_id": 27205,
+      "title": "Inception",
+      "overview": "A skilled thief who steals secrets through dream-sharing technology is offered a chance to erase his criminal history by planting an idea in a target's mind."
+    },
+    {
+      "film_id": 2,
+      "my_film_id": 2,
+      "api_film_TMDB_id": 603,
+      "title": "The Matrix",
+      "overview": "A computer hacker learns that reality is a simulated world and joins a rebellion against the machines controlling humanity."
+    },
+    {
+      "film_id": 3,
+      "my_film_id": 3,
+      "api_film_TMDB_id": 157336,
+      "title": "Interstellar",
+      "overview": "A team of explorers travels beyond this galaxy to discover whether mankind has a future among the stars."
+    },
+    {
+      "film_id": 4,
+      "my_film_id": 4,
+      "api_film_TMDB_id": 129,
+      "title": "Spirited Away",
+      "overview": "A young girl enters a mysterious spirit world and must find a way to save her parents and return home."
+    },
+    {
+      "film_id": 5,
+      "my_film_id": 5,
+      "api_film_TMDB_id": 496243,
+      "title": "Parasite",
+      "overview": "A poor family gradually becomes entangled with a wealthy household, with unexpected and dangerous consequences."
+    },
+    {
+      "film_id": 6,
+      "my_film_id": 6,
+      "api_film_TMDB_id": 120467,
+      "title": "The Grand Budapest Hotel",
+      "overview": "A legendary concierge and his young protégé become involved in a dispute over a valuable painting and a family inheritance."
+    },
+    {
+      "film_id": 7,
+      "my_film_id": 7,
+      "api_film_TMDB_id": 545611,
+      "title": "Everything Everywhere All at Once",
+      "overview": "An exhausted laundromat owner is drawn into a multiverse-spanning adventure that may determine the fate of all realities."
+    },
+    {
+      "film_id": 8,
+      "my_film_id": 8,
+      "api_film_TMDB_id": 693134,
+      "title": "Dune: Part Two",
+      "overview": "Paul Atreides unites with the Fremen while seeking revenge against those who destroyed his family."
+    }
+  ],
+  "film_genres": [
+    {
+      "genre_id": 1,
+      "genre_name": "Action"
+    },
+    {
+      "genre_id": 2,
+      "genre_name": "Adventure"
+    },
+    {
+      "genre_id": 3,
+      "genre_name": "Animation"
+    },
+    {
+      "genre_id": 4,
+      "genre_name": "Comedy"
+    },
+    {
+      "genre_id": 5,
+      "genre_name": "Crime"
+    },
+    {
+      "genre_id": 6,
+      "genre_name": "Drama"
+    },
+    {
+      "genre_id": 7,
+      "genre_name": "Science Fiction"
+    },
+    {
+      "genre_id": 8,
+      "genre_name": "Thriller"
+    }
+  ],
+  "junc_genres": [
+    {
+      "film_id": 1,
+      "genre_id": 1
+    },
+    {
+      "film_id": 1,
+      "genre_id": 7
+    },
+    {
+      "film_id": 2,
+      "genre_id": 1
+    },
+    {
+      "film_id": 2,
+      "genre_id": 7
+    },
+    {
+      "film_id": 3,
+      "genre_id": 2
+    },
+    {
+      "film_id": 3,
+      "genre_id": 7
+    },
+    {
+      "film_id": 4,
+      "genre_id": 2
+    },
+    {
+      "film_id": 4,
+      "genre_id": 3
+    },
+    {
+      "film_id": 5,
+      "genre_id": 5
+    },
+    {
+      "film_id": 5,
+      "genre_id": 6
+    },
+    {
+      "film_id": 6,
+      "genre_id": 4
+    },
+    {
+      "film_id": 6,
+      "genre_id": 5
+    },
+    {
+      "film_id": 7,
+      "genre_id": 1
+    },
+    {
+      "film_id": 7,
+      "genre_id": 4
+    },
+    {
+      "film_id": 8,
+      "genre_id": 1
+    },
+    {
+      "film_id": 8,
+      "genre_id": 2
+    },
+    {
+      "film_id": 8,
+      "genre_id": 7
+    },
+    {
+      "film_id": 5,
+      "genre_id": 8
+    },
+    {
+      "film_id": 1,
+      "genre_id": 8
+    },
+    {
+      "film_id": 2,
+      "genre_id": 8
+    }
+  ],
+  "directors": [
+    {
+      "director_id": 1,
+      "name": "Christopher Nolan"
+    },
+    {
+      "director_id": 2,
+      "name": "Lana Wachowski"
+    },
+    {
+      "director_id": 3,
+      "name": "Lilly Wachowski"
+    },
+    {
+      "director_id": 4,
+      "name": "Hayao Miyazaki"
+    },
+    {
+      "director_id": 5,
+      "name": "Bong Joon-ho"
+    },
+    {
+      "director_id": 6,
+      "name": "Wes Anderson"
+    },
+    {
+      "director_id": 7,
+      "name": "Daniel Kwan"
+    },
+    {
+      "director_id": 8,
+      "name": "Daniel Scheinert"
+    }
+  ],
+  "junc_directors": [
+    {
+      "director_id": 1,
+      "film_id": 1
+    },
+    {
+      "director_id": 2,
+      "film_id": 2
+    },
+    {
+      "director_id": 3,
+      "film_id": 2
+    },
+    {
+      "director_id": 1,
+      "film_id": 3
+    },
+    {
+      "director_id": 4,
+      "film_id": 4
+    },
+    {
+      "director_id": 5,
+      "film_id": 5
+    },
+    {
+      "director_id": 6,
+      "film_id": 6
+    },
+    {
+      "director_id": 7,
+      "film_id": 7
+    },
+    {
+      "director_id": 8,
+      "film_id": 7
+    },
+    {
+      "director_id": 1,
+      "film_id": 8
+    }
+  ],
+  "actors": [
+    {
+      "actor_id": 1,
+      "name": "Leonardo DiCaprio"
+    },
+    {
+      "actor_id": 2,
+      "name": "Keanu Reeves"
+    },
+    {
+      "actor_id": 3,
+      "name": "Matthew McConaughey"
+    },
+    {
+      "actor_id": 4,
+      "name": "Rumi Hiiragi"
+    },
+    {
+      "actor_id": 5,
+      "name": "Song Kang-ho"
+    },
+    {
+      "actor_id": 6,
+      "name": "Ralph Fiennes"
+    },
+    {
+      "actor_id": 7,
+      "name": "Michelle Yeoh"
+    },
+    {
+      "actor_id": 8,
+      "name": "Timothée Chalamet"
+    }
+  ],
+  "junc_actors": [
+    {
+      "actor_id": 1,
+      "film_id": 1
+    },
+    {
+      "actor_id": 2,
+      "film_id": 2
+    },
+    {
+      "actor_id": 3,
+      "film_id": 3
+    },
+    {
+      "actor_id": 4,
+      "film_id": 4
+    },
+    {
+      "actor_id": 5,
+      "film_id": 5
+    },
+    {
+      "actor_id": 6,
+      "film_id": 6
+    },
+    {
+      "actor_id": 7,
+      "film_id": 7
+    },
+    {
+      "actor_id": 8,
+      "film_id": 8
+    }
+  ],
+  "subscriptions": [
+    {
+      "subscription_id": 1,
+      "service": "Netflix",
+      "service_TMDB_id": 8,
+      "active": true
+    },
+    {
+      "subscription_id": 2,
+      "service": "Prime Video",
+      "service_TMDB_id": 9,
+      "active": true
+    },
+    {
+      "subscription_id": 3,
+      "service": "Disney+",
+      "service_TMDB_id": 337,
+      "active": false
+    },
+    {
+      "subscription_id": 4,
+      "service": "NOW",
+      "service_TMDB_id": 39,
+      "active": true
+    },
+    {
+      "subscription_id": 5,
+      "service": "Apple TV+",
+      "service_TMDB_id": 350,
+      "active": false
+    }
+  ]
+}
