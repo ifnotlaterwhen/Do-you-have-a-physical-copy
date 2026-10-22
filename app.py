@@ -29,7 +29,13 @@ def get_all_movies():
 #                         ADD PHYSICAL COPY
 # ===================================================================
 
+@app.route('api/all/search')
+def find_film_id():
+    return jsonify({"message": "Temporary code: endpoint is working!"}), 200
 
+@app.route('/api/all/<int:my_film_id', methods=['PATCH'])
+def update_physical():
+    return jsonify({"message": "Temporary code: endpoint is working!"}), 200
 
 # ===================================================================
 #                         ADD WATCHED FILM

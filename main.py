@@ -1,62 +1,87 @@
 import requests
 from pprint import pprint
 
+class ValueTooLow(Exception):
+    pass
+class ValueTooHigh(Exception):
+    pass
+
+base_url = "http://127.0.0.1:5000"
+
 def run():
-    print("Welcome to Cinefiles")
+    print("\nWelcome to Cinefiles")
     while True:
         choice = menu()
         result = ""
         if choice == 1:
             result = show_DB()
+            # show_DB()
         elif choice == 2:
-            result = get_recommendatoins()
+            result = get_recommendations()
+            # get_recommendations()
         elif choice == 3:
             result = how_watch()
+            # how_watch()
         elif choice == 4:
             result = log_physical()
+            # log_physical()
         elif choice == 5:
             result = add_films()
+            # add_films()
         elif choice == 6:
             result = view_subscription()
+            # view_subscription()
         elif choice == 7:
+            print("\nBye for now!\n")
             break
 
         if result:
-            if not return_to_menu():
-                break
-        else:
-            print("Something went wrong. Please try again")
-
+            # if not return_to_menu():
+                # break
+            break
+        # else:
+        #     print("Something went wrong. Please try again")
 
 def menu():
-    print("""1- Cinefiles DB
-    2- Film recommandations 
-    3- Find where to watch
-    4- Add physical copy
-    5- Add watched film
-    6- Subscriptions
-    7- exit""")
+    print("""
+[1] Cinefiles DB
+[2] Film recommandations 
+[3] Find where to watch
+[4] Add physical copy
+[5] Add watched film
+[6] Subscriptions
+[7] Exit\n""")
 
-    choice = 1
+    # choice = 1
     while True:
         try:
             choice = int(input("Please enter the number from the menu: "))
-            if 1<= choice <= 7:
-                break
+            
+            if choice < 1:
+                raise ValueTooLow
+            if choice > 7:
+                raise ValueTooHigh
+
+            return choice
+        
         except ValueError:
             print("Please enter a valid number")
-        else:
-            print("Pease enter a number on the menu (1-7)")
+        # else:
+        #     print("Pease enter a number on the menu (1-7)")
+        except ValueTooLow:
+            print("\nPease enter a number on the menu (1-7)\n")
+        except ValueTooHigh:
+            print("\nPease enter a number on the menu (1-7)\n")
 
-def return_to_menu():
-    another = input("Would you like to go back to the menu? y/n: ").lower()
-    if another != "y" and another != "n":
-        raise ValueError("Please enter y or n:")
-    elif another == "n":
-        return False
-    else:
-        return True
-            
+
+# def return_to_menu():
+#     another = input("\nWould you like to go back to the menu? y/n: ").lower()
+#     if another != "y" and another != "n":
+#         raise ValueError("Please enter y or n:")
+#     elif another == "n":
+#         return False
+#     else:
+#         return True
 
 #Reese's note to all: 
 # the functions below should call API routes defined in app.py
@@ -73,7 +98,7 @@ def show_DB():
     # For now I will add show_DB, but we will discuss further what it does exactly
     # this function should query cinefiles DB and show info of all watched/owned movies
 
-    all_movies = requests.get("http://127.0.0.1:8888/api/all") #See app.py for this route
+    all_movies = requests.get(f"{base_url}/api/all") #See app.py for this route
     pprint(all_movies.json())
 
 # ===================================================================
@@ -81,7 +106,7 @@ def show_DB():
 # ===================================================================
 
 #Leave it for now
-def get_recommendatoins():
+def get_recommendations():
     # should return a number of movies based on watch history 
     pass
 
@@ -103,10 +128,93 @@ def how_watch():
 # ===================================================================
 
 #Reid
-def log_physical(): 
-    # Updates the physical copy column of the movie passed in as argument if it already exists in the DB
-    # Add a new movie to DB with the physical copy column set to True
-    pass
+
+# When the user enters a film, check if it exists. If not, film added to DB before the logic proceeds       # part of add_films?
+# Updates the relevant value of dvd_owned/bluray_owned/4k_bluray_owned to True in DB
+
+# below is on the basis that the film already exists in the database.
+
+def physical_options():
+    print("\nWhich physical format do you want to add? ")
+    choice = physical_menu()
+    if choice == 1:
+        return {"dvd_owned" : True}
+    elif choice == 2:
+        return {"bluray_owned" : True}
+    elif choice == 3:
+        return {"4k_bluray_owned" : True}
+    elif choice == 4:
+        print("\nGoing back to the Main Menu\n")
+        return None
+    elif choice == 5:
+        exit()          # should it exit this way? better way to do it?
+
+def physical_menu():
+    print("""
+[1] DVD
+[2] Blu-ray 
+[3] 4K Blu-ray
+[4] Return to Main Menu
+[5] Exit\n""")
+
+    # choice = 1
+    while True:
+        try:
+            choice = int(input("Please enter the number from the menu: "))
+            # if 1<= choice <= 5:
+
+            if choice < 1:
+                raise ValueTooLow
+            if choice > 5:
+                raise ValueTooHigh
+            
+            return choice
+        
+            # else:
+            #     print("Pease enter a number on the menu (1-5)")
+        except ValueError:
+            print("Please enter a valid number")
+        except ValueTooLow:
+                    print("\nPease enter a number on the menu (1-7)\n")
+        except ValueTooHigh:
+            print("\nPease enter a number on the menu (1-7)\n")
+
+def log_physical():
+    
+    # try:
+        data = physical_options()
+
+        if data is None:
+            return
+
+        # Find film ID:
+
+        url_search = (f"{base_url}/api/all/search")
+        response = requests.get(url_search, json=data)
+
+        if response.status_code == 200:
+            film_search = response.json()
+            my_film_id = film_search["my_film_id"]
+        else:
+            print(f'\n** Error: {response.json()["error"]} **')
+            return  # Need something for menu stuff here?
+
+        # Update physical format info:
+
+        url_id = (f"{base_url}/api/all/{my_film_id}")
+        response = requests.patch(url_id, json=data)
+
+        if response.status_code == 200:
+            print("\nYour physical copy has been stored to your library")
+            return  # Need something for menu stuff here?                          
+        else:
+            print(f'\nSorry there was an error: {response.json()["error"]}')
+            return  # Need something for menu stuff here?
+
+    # except requests.exceptions.RequestException: # Error for Flask communication not happening
+        print("\nSorry, there was an issue. Make sure app.py is running and then run main.py again\n")
+        return True
+        # ask if go back to main menu or exit? or just exit for them??
 
 # ===================================================================
 #                         ADD WATCHED FILM
