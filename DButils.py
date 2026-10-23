@@ -3,7 +3,7 @@ from config import DB_manager
 import json
 
 class FilmDB:
-    def __init__(self, db_name):
+    def __init__(self, db_name: str):
         self.db_name = db_name
         self.db_manager = DB_manager()
 
@@ -279,8 +279,10 @@ class SubsDB:
 
 
 
+def run():
+    test_db = FilmDB("cinefiles")
+    test_db.init_db()
+    test_db.seed_db_mock()
 
-#Testing init_db and seed_db_mock below. Feel f
-test_db = FilmDB("cinefiles")
-test_db.init_db()
-test_db.seed_db_mock()
+if __name__ == "__main__":
+    run()
