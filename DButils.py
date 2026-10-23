@@ -161,39 +161,88 @@ class FilmDB:
                             ))
                 db.commit()
 
+# olivia's note: this returns titles of all watched/owned movies. Checking this is the intended functionality?
     def fetch_all_movies(self):
-        #logic here to query db
-        return "yay success"
+        with self.db_manager.get_connection() as db:
+            with db.cursor() as cur:
+                cur.execute(f"USE {self.db_name}")
+                cur.execute("""
+                SELECT film_info.title
+                FROM film_info
+                INNER JOIN my_films 
+                ON film_info.my_film_id = my_films.my_film_id
+                """)
+                return [row[0] for row in cur.fetchall()]
 
-    def fetch_film_by_id(self):
-        #logic to get info of one single movie
-        pass
-
-#Testing init_db and seed_db_mock below. Feel f
-test_db = FilmDB("cinefiles")
-test_db.init_db()
-test_db.seed_db_mock()
-
-    # keep adding methods that relates to movies here.
-    # We can have a separate class for subscriptions?
+    def fetch_film_by_id(self, fetch_film_id):
+        with self.db_manager.get_connection() as db:
+            with db.cursor(dictionary=True) as cur:
+                cur.execute(f"USE {self.db_name}")
+                cur.execute("""
+                SELECT title, overview
+                FROM film_info
+                INNER JOIN my_films 
+                ON film_info.my_film_id = my_films.my_film_id
+                WHERE my_films.my_film_id = %s
+                """, (fetch_film_id,))
+                return cur.fetchone()
+                #logic to get info of one single movie
 
 # ===================================================================
 #                        SEE WATCHED FILMS
 # ===================================================================
 
+    def fetch_watched_movies(self):
+        with self.db_manager.get_connection() as db:
+            with db.cursor() as cur:
+                cur.execute(f"USE {self.db_name}")
+                cur.execute("""
+                SELECT film_info.title
+                FROM film_info
+                INNER JOIN my_films ON
+                film_info.my_film_id = my_films.my_film_id
+                WHERE watched = True
+                """)
+                return [row[0] for row in cur.fetchall()]
 
+# ===================================================================
+#                        SEE PHYSICAL COPIES
+# =================================================================== 
+
+    def fetch_physical_copies(self):
+        with self.db_manager.get_connection() as db:
+            with db.cursor() as cur:
+                cur.execute(f"USE {self.db_name}")
+                cur.execute("""
+                    SELECT
+                        film_info.title,
+                        my_films.dvd_owned,
+                        my_films.bluray_owned,
+                        my_films.`4k_bluray_owned`
+                    FROM film_info
+                    INNER JOIN my_films 
+                    ON film_info.my_film_id = my_films.my_film_id
+                    WHERE my_films.dvd_owned = True
+                        OR my_films.bluray_owned = True
+                        OR my_films.`4k_bluray_owned` = True
+                """)
+                return cur.fetchall()
+            # backticks on 4k_bluray_owned as SQL doesn't like names starting with numbers               
 
 # ===================================================================
 #                        GET RECOMMENDATION
 # ===================================================================
 
-
+# the database logic for this one needs to output actor, director, and genre data from a film in the database
+# this will then be passed into an API request for top 3 similar
 
 # ===================================================================
 #                          HOW TO WATCH
 # ===================================================================
 
 
+# olivia's note: wouldn't this be an API query? Where we check against active subscriptions with existing .fetch_active_subs()
+# and check for physical copies with .fetch_physical_copies()
 
 # ===================================================================
 #                         ADD PHYSICAL COPY
@@ -211,3 +260,27 @@ test_db.seed_db_mock()
 #                         SUBSCRIPTIONS
 # ===================================================================
 
+class SubsDB:
+    def __init__(self, db_name):
+        self.db_name = db_name
+        self.db_manager = DB_manager()
+
+    def fetch_active_subs(self):
+         with self.db_manager.get_connection() as db:
+              with db.cursor(dictionary=True) as cur:
+                   cur.execute(f"USE {self.db_name}")
+                   cur.execute("""
+                   SELECT service, service_TMDB_id 
+                   FROM subscriptions
+                   WHERE active = TRUE""")
+                   return cur.fetchall()
+                   
+
+
+
+
+
+#Testing init_db and seed_db_mock below. Feel f
+test_db = FilmDB("cinefiles")
+test_db.init_db()
+test_db.seed_db_mock()
