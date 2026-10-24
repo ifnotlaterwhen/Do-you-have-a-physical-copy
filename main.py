@@ -1,5 +1,6 @@
 import requests
 from pprint import pprint
+from app import how_to_watch
 
 class ValueTooLow(Exception):
     pass
@@ -121,7 +122,32 @@ def how_watch():
     # should we consider resuability, like when/if the users go to a specific movie info page, 
     # they should be able to call this function too?
     # need to also note if any physical copy, and what format(s)
-    pass
+
+    movie_title = input("What movie whould you like to know where to stream?")
+    if not movie_title:
+        print("Please type the name of the movie")
+        return None
+
+    streaming = requests.get(f"http://127.0.0.1:5000/api/how-to-watch/{movie_title}")
+    owned = requests.get(f"http://127.0.0.1:5000/api/owned-physical/{movie_title}")
+    if owned.status_code == 200:
+        owned_copy = owned.json()
+    else:
+        owned_copy = None
+
+    if owned_copy:
+        print(f"You have {movie_title} on {owned_copy}")
+    else:
+        print(f"you do not own {movie_title}. But...")
+
+    return streaming.json()
+
+
+if __name__ == "__main__":
+    result = how_watch()
+    if result:
+        print(result)
+
 
 # ===================================================================
 #                         ADD PHYSICAL COPY
@@ -249,5 +275,3 @@ def adjust_subscription():
     # 2. remove a subscrfiption from the list.
    pass
 
-if __name__ == "__main__":
-    run()
