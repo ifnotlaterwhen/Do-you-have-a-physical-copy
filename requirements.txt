@@ -3,4 +3,3 @@ mysql-connector-python
 requests
 flask
 python-dotenv
-TMDB api key
