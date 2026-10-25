@@ -222,7 +222,7 @@ def log_physical():
 
 #Stéphanie
 def add_films():
-    user_input = input("Would you like to add a film thay you've watched to Cinefiles?\n y/n?").lower()
+    user_input = input("Would you like to add a film that you've watched to Cinefiles?\n y/n? ").lower()
 
     if user_input == "n":
       print("Goodbye.")
@@ -231,40 +231,44 @@ def add_films():
     elif user_input != "y":
         print("Please enter y or n.")
         return
-    film_title = input("Please enter the title of the film you've watched: ")
+    
+    film_title = add_film_to_library(watched = True)
 
-    if not film_title:
-           print("Please enter a valid title: ")
+    if film_title is None:
            return 
+    
+    print(f"\n'{film_title}' has been added to your watched films.")
         
-    film_data = {"title": title, "watched": True}
-
-    try:
-        response = requests.post(f"{base_url}/api/all", json= film_data)
-
-    except requests.exceptions.RequestException:
-        print("Sorry there was an issue with your post request.")
-        return None 
-    
-    if response.status.code not in (200, 201):
-        print(f"Sorry there seemed to have been an error {response.json()["error"]}'")
-        return None 
-    
-    else:
-        print(f"\n'{title}' has been added to your watched films.")
-                                
-    
-       
-    owns_copy = input("Do you own a physical copy of the film?\n y/n?").lower()
+    owns_copy = input("Do you own a physical copy of the film?\n y/n? ").lower()
     if owns_copy == 'y':
        log_physical()
 
     elif owns_copy == "n":
         print("No worries, your film has been saved without a physical copy.")
-        break
     
     else:
         print("Please enter y or n")
+
+def add_film_to_library(watched= True):
+
+    film_title = input("Please enter the name of the film:")
+    if not film_title:
+        print("Please enter a valid title.")
+        return None
+          
+    film_data = {"title": film_title, "watched": watched}
+    
+    try:
+        response = requests.post(f"{base_url}/api/all", json= film_data)
+    
+    except requests.exceptions.RequestException:
+        print("Sorry there was an issue with your post request.")
+        return None 
+        
+    if response.status_code not in (200, 201):
+        print(f"Sorry there seemed to have been an error {response.json()['error']}")
+        return None 
+    return film_title                        
 
  
 # ===================================================================
