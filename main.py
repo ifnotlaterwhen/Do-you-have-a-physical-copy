@@ -222,7 +222,7 @@ def log_physical():
 
 #Stéphanie
 def add_films():
-    user_input = input("Would you like to add a film that you've watched to Cinefiles?\n y/n? ").lower()
+    user_input = input("What's the film title you want to add to the library?\n y/n? ").lower()
 
     if user_input == "n":
       print("Goodbye.")
