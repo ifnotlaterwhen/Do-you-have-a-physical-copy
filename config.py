@@ -30,7 +30,7 @@ class DB_manager:
                 raise RuntimeError("Connection Failed")
 
         except mysql.connector.Error as e: 
-            raise RuntimeError(f"Connection faild: {e}")
+            raise RuntimeError(f"Connection failed: {e}")
 
     def close_connection(self):
         if self.connection and self.connection.is_connected(): 
