@@ -7,6 +7,7 @@ class ValueTooHigh(Exception):
     pass
 
 base_url = "http://127.0.0.1:5000"
+current_film = ""
 
 def run():
     print("\nWelcome to Cinefiles")
@@ -222,20 +223,13 @@ def log_physical():
 
 #Stéphanie
 def add_films():
-    user_input = input("What's the film title you want to add to the library?\n y/n? ").lower()
+    current_film = input("What's the film title you want to add to the library?").lower()
 
-    if user_input == "n":
-      print("Goodbye.")
-      return
-
-    elif user_input != "y":
-        print("Please enter y or n.")
-        return
-    
     film_title = add_film_to_library(watched = True)
 
     if film_title is None:
-           return 
+        print("\nGoing back to the Main Menu\n")
+        return None
     
     print(f"\n'{film_title}' has been added to your watched films.")
         
@@ -254,7 +248,7 @@ def add_film_to_library(watched= True):
     film_title = input("Please enter the name of the film:")
     if not film_title:
         print("Please enter a valid title.")
-        return None
+    
           
     film_data = {"title": film_title, "watched": watched}
     
@@ -263,11 +257,10 @@ def add_film_to_library(watched= True):
     
     except requests.exceptions.RequestException:
         print("Sorry there was an issue with your post request.")
-        return None 
+
         
     if response.status_code not in (200, 201):
         print(f"Sorry there seemed to have been an error {response.json()['error']}")
-        return None 
     return film_title                        
 
  
