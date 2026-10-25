@@ -222,16 +222,51 @@ def log_physical():
 
 #Stéphanie
 def add_films():
-    # This allows users to add a film that they have watched.
-    # It should also allow them to say if they already have a physical copy when adding the film.
-    # 2 potential ways to do this: 
-    # Option 1: We collect user input in a dict (film name, watched, physical copy owned etc) 
-    #   and add that to the DB via 1 single query
-    # Option 2: Add the new film to the DB without stating physical copy in the query body (should default to False),
-    #   then call log_physical() to handle it .
-    # Reese's message to Stéphanie: Lmk your thoughts.
-    pass
+    user_input = input("Would you like to add a film thay you've watched to Cinefiles?\n y/n?").lower()
 
+    if user_input == "n":
+      print("Goodbye.")
+      return
+
+    elif user_input != "y":
+        print("Please enter y or n.")
+        return
+    film_title = input("Please enter the title of the film you've watched: ")
+
+    if not film_title:
+           print("Please enter a valid title: ")
+           return 
+        
+    film_data = {"title": title, "watched": True}
+
+    try:
+        response = requests.post(f"{base_url}/api/all", json= film_data)
+
+    except requests.exceptions.RequestException:
+        print("Sorry there was an issue with your post request.")
+        return None 
+    
+    if response.status.code not in (200, 201):
+        print(f"Sorry there seemed to have been an error {response.json()["error"]}'")
+        return None 
+    
+    else:
+        print(f"\n'{title}' has been added to your watched films.")
+                                
+    
+       
+    owns_copy = input("Do you own a physical copy of the film?\n y/n?").lower()
+    if owns_copy == 'y':
+       log_physical()
+
+    elif owns_copy == "n":
+        print("No worries, your film has been saved without a physical copy.")
+        break
+    
+    else:
+        print("Please enter y or n")
+
+ 
 # ===================================================================
 #                         SUBSCRIPTIONS
 # ===================================================================
