@@ -1,5 +1,5 @@
 from flask import Flask, jsonify
-from DButils import FilmDB,Physical
+from DButils import FilmDB,SQL_query
 from config import DB_manager
 from tmdb_api import TMDB_api
 import os
@@ -15,11 +15,11 @@ app = Flask(__name__)
 #                        SEE WATCHED FILMS
 # ===================================================================
 
-# @app.route('/api/all')
-# def get_all_movies():
-#     cinefiles = FilmDB("cinefiles")
-#     movies = cinefiles.fetch_all_movies() #see DButils.py
-#     return jsonify({"data": movies}), 200 #This is mock. ATM fetch_all_movies doesn't return anything useful
+@app.route('/api/all')
+def get_all_movies():
+    cinefiles = FilmDB("cinefiles")
+    movies = cinefiles.fetch_all_movies() #see DButils.py
+    return jsonify({"data": movies}), 200 #This is mock. ATM fetch_all_movies doesn't return anything useful
 
 # ===================================================================
 #                        GET RECOMMENDATION
@@ -41,20 +41,20 @@ def how_to_watch(movie: str):
 
 @app.route("/api/owned-physical/<movie>", methods=["GET"])
 def physical_copy(movie):
-    physical = Physical(DB_manager())
+    physical = SQL_query(DB_manager())
     result = physical.owned_copies(movie)
     return jsonify(result)
 # ===================================================================
 #                         ADD PHYSICAL COPY
 # ===================================================================
 
-# @app.route('api/all/search')
-# def find_film_id():
-#     return jsonify({"message": "Temporary code: endpoint is working!"}), 200
-#
-# @app.route('/api/all/<int:my_film_id', methods=['PATCH'])
-# def update_physical():
-#     return jsonify({"message": "Temporary code: endpoint is working!"}), 200
+@app.route('api/all/search')
+def find_film_id():
+    return jsonify({"message": "Temporary code: endpoint is working!"}), 200
+
+@app.route('/api/all/<int:my_film_id', methods=['PATCH'])
+def update_physical():
+    return jsonify({"message": "Temporary code: endpoint is working!"}), 200
 
 # ===================================================================
 #                         ADD WATCHED FILM

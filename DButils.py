@@ -194,7 +194,7 @@ test_db.seed_db_mock()
 # ===================================================================
 #                          HOW TO WATCH
 # ===================================================================
-class Physical:
+class SQL_query:
     def __init__(self,  db_manager):
         self.db_manager = db_manager
 
@@ -215,14 +215,11 @@ class Physical:
                    OR my_films.bluray_owned = TRUE
                    OR my_films.`4k_bluray_owned` = TRUE)
         """
-        try:
-            with self.db_manager.get_connection() as db:
-                with db.cursor() as curr:
-                    curr.execute(query, (movie,))
-                    return curr.fetchone()
-        except mysql.connector.Error as err:
-            print(err.msg)
-            raise
+
+        with self.db_manager.get_connection() as db:
+            with db.cursor() as curr:
+                curr.execute(query, (movie,))
+                return curr.fetchone()
 
 
 

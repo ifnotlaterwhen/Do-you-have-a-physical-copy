@@ -143,10 +143,6 @@ def how_watch():
     return streaming.json()
 
 
-if __name__ == "__main__":
-    result = how_watch()
-    if result:
-        print(result)
 
 
 # ===================================================================
