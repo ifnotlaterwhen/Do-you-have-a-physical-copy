@@ -71,4 +71,51 @@ class Test_TMDBapi:
 
         assert result == "you can stream fight club on Disney Plus"
 
+    def test_genre_id(self, mocker):
+        data = {
+            "genres": [
+                {"id": 28, "name": "Action"},
+                {"id": 12, "name": "Adventure"},
+                {"id": 16, "name": "Animation"},
+            ]
+        }
 
+        mock_data = mocker.MagicMock(status_code=200)
+        mock_data.json.return_value = data
+        mocker.patch("tmdb_api.requests.get", return_value=mock_data)
+
+        genre = TMDB_api("https://api.themoviedb.org/3", "fake-api-key")
+        result = genre.genre_id("Action")
+
+        assert result == 28
+
+
+    def test_person_id(self, mocker):
+        data  = {
+                 "results":[
+                     {
+                         "id":2,
+                         "know_for_department": "Acting",
+                         "name": "Tom Hanks",
+                         "popularity": 84.631
+                     },
+                     {  "id": 45,
+                        "Known_for_department": "Directing",
+                        "name": "Christopher Nolan",
+                        "popularity": 87.342
+
+                     }
+
+
+                 ]
+
+        }
+
+        mock_person = mocker.MagicMock(status_code=200)
+        mock_person.json.return_value = data
+        mocker.patch("tmdb_api.requests.get", return_value=mock_person)
+
+        person = TMDB_api("https://api.themoviedb.org/3", "fake-api-key")
+        result = person.person_id("Tom Hanks")
+
+        assert result == 2

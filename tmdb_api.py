@@ -1,5 +1,6 @@
 import requests
 from dotenv import load_dotenv
+from TMDB_endpoints import genre_id, person_id
 load_dotenv()
 
 class TMDB_api:
@@ -61,3 +62,26 @@ class TMDB_api:
         returned_data = streaming_services[0]["provider_name"]
         return f"you can stream {movie} on {returned_data}"
 
+
+    def genre_id(self, genre:str)->int | None:
+        endpoint = self.api_request(genre_id)
+        results = endpoint["genres"]
+
+        if not results:
+            return None
+
+
+        return results[0]["id"]
+
+
+    def person_id(self, person:str)->int | None:
+        endpoint = self.api_request(person_id)
+        results = endpoint["results"]
+
+        if not results:
+            return None
+
+        return results[0]["id"]
+
+
+#retrieve the genre id and person id to find movie recommendation
