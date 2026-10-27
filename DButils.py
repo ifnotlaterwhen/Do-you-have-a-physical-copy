@@ -240,7 +240,19 @@ class FilmDB:
 #                          HOW TO WATCH
 # ===================================================================
 
+    def how_to_watch(self, film_id):
+        with self.db_manager.get_connection() as db:
+            with db.cursor(dictionary=True) as cur:
+                cur.execute(f"USE {self.db_name}")
 
+                cur.execute("""
+                    SELECT title, api_film_TMDB_id
+                    FROM film_info
+                    WHERE my_film_id = %s
+                """, (film_id,))
+
+                return cur.fetchone()
+                
 # olivia's note: wouldn't this be an API query? Where we check against active subscriptions with existing .fetch_active_subs()
 # and check for physical copies with .fetch_physical_copies()
 
@@ -248,13 +260,46 @@ class FilmDB:
 #                         ADD PHYSICAL COPY
 # ===================================================================
 
+    def add_physical_copy(self, film_id, copy_type):
+        with self.db_manager.get_connection() as db:
+            with db.cursor() as cur:
+                cur.execute(f"USE {self.db_name}")
 
+                copy_types = {
+                    "dvd": "dvd_owned",
+                    "bluray": "bluray_owned",
+                    "4k": "4k_bluray_owned"
+                }
+
+                if copy_type not in copy_types:
+                    raise ValueError("Invalid copy type")
+
+                column = copy_types[copy_type]
+
+                cur.execute(f"""
+                    UPDATE my_films
+                    SET `{column}` = TRUE
+                    WHERE my_film_id = %s
+                """, (film_id,))
+
+            db.commit()
 
 # ===================================================================
 #                         ADD WATCHED FILM
 # ===================================================================
 
+    def add_watched_film(self, film_id):
+        with self.db_manager.get_connection() as db:
+            with db.cursor() as cur:
+                cur.execute(f"USE {self.db_name}")
 
+                cur.execute("""
+                    UPDATE my_films
+                    SET watched = TRUE
+                    WHERE my_film_id = %s
+                """, (film_id,))
+
+            db.commit()
 
 # ===================================================================
 #                         SUBSCRIPTIONS
@@ -277,12 +322,14 @@ class SubsDB:
                    
 
 
-
+# Run commands
 
 def run():
     test_db = FilmDB("cinefiles")
-    test_db.init_db()
-    test_db.seed_db_mock()
+
+    print("HOW TO WATCH:")
+    print(test_db.how_to_watch(1))
+
 
 if __name__ == "__main__":
     run()
