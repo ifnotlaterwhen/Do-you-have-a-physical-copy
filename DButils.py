@@ -326,6 +326,8 @@ class SubsDB:
 
 def run():
     test_db = FilmDB("cinefiles")
+    test_db.init_db()
+    test_db.seed_db_mock()
 
     print("HOW TO WATCH:")
     print(test_db.how_to_watch(1))
