@@ -1,6 +1,7 @@
 # DButils.py handles all DB queries
 from config import DB_manager
 import json
+from itertools import chain
 
 class FilmDB:
     def __init__(self, db_name: str):
@@ -172,7 +173,42 @@ class FilmDB:
                 INNER JOIN my_films 
                 ON film_info.my_film_id = my_films.my_film_id
                 """)
-                return [row[0] for row in cur.fetchall()]
+                
+                return cur.fetchall()
+
+    def fetch_overview(self):
+        with self.db_manager.get_connection() as db:
+            with db.cursor() as cur:
+                cur.execute(f"USE {self.db_name}")
+                cur.execute("""SELECT fi.title, GROUP_CONCAT(fg.genre_name SEPARATOR ", "), GROUP_CONCAT(DISTINCT d.name SEPARATOR ", ") ,GROUP_CONCAT(DISTINCT a.name SEPARATOR ", ") , mf.4k_bluray_owned, mf.bluray_owned, mf.dvd_owned
+                    FROM my_films mf
+                    JOIN film_info fi ON mf.my_film_id = fi.my_film_id
+                    JOIN junc_directors jd ON fi.film_id = jd.film_id
+                    JOIN directors d ON jd.director_id = d.director_id
+                    JOIN junc_genres jg ON jg.film_id = fi.film_id
+                    JOIN film_genres fg ON fg.genre_id = jg.genre_id
+                    JOIN junc_actors ja ON ja.film_id = fi.film_id
+                    JOIN actors a ON a.actor_id = ja.actor_id
+                    GROUP BY jg.film_id
+                """)
+                return [row for row in cur.fetchall()]
+
+    def fetch_info_for_graph(self):
+        with self.db_manager.get_connection() as db:
+            with db.cursor() as cur:
+                cur.execute(f"USE {self.db_name}")
+                cur.execute("""SELECT fi.film_id, fi.title, GROUP_CONCAT(fg.genre_id SEPARATOR ", ") AS genre_id, GROUP_CONCAT(DISTINCT d.director_id SEPARATOR ", ") AS directed_id,GROUP_CONCAT(DISTINCT a.actor_id SEPARATOR ", ") AS actor_id
+                    FROM my_films mf
+                    JOIN film_info fi ON mf.my_film_id = fi.my_film_id
+                    JOIN junc_directors jd ON fi.film_id = jd.film_id
+                    JOIN directors d ON jd.director_id = d.director_id
+                    JOIN junc_genres jg ON jg.film_id = fi.film_id
+                    JOIN film_genres fg ON fg.genre_id = jg.genre_id
+                    JOIN junc_actors ja ON ja.film_id = fi.film_id
+                    JOIN actors a ON a.actor_id = ja.actor_id
+                    GROUP BY jg.film_id
+                """)
+                return [row for row in cur.fetchall()]
 
     def fetch_film_by_id(self, fetch_film_id):
         with self.db_manager.get_connection() as db:
@@ -203,7 +239,8 @@ class FilmDB:
                 film_info.my_film_id = my_films.my_film_id
                 WHERE watched = True
                 """)
-                return [row[0] for row in cur.fetchall()]
+                flat = list(chain.from_iterable(cur.fetchall()))
+                return flat
 
 # ===================================================================
 #                        SEE PHYSICAL COPIES
@@ -329,8 +366,9 @@ def run():
     test_db.init_db()
     test_db.seed_db_mock()
 
-    print("HOW TO WATCH:")
-    print(test_db.how_to_watch(1))
+    # print("HOW TO WATCH:")
+    # print(test_db.how_to_watch(1))
+    # print(test_db.fetch_overview())
 
 
 if __name__ == "__main__":
