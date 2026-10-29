@@ -13,6 +13,7 @@ import mysql.connector
 app = Flask(__name__)
 
 dbutils = FilmDB("cinefiles")      # creates instance of FilmDB class - RB
+sql_query = SQL_query(DB_manager())     # added now that add_physical_copy in class SQL_query - RB
 
 # ===================================================================
 #                           SEE OVERVIEW
@@ -68,7 +69,7 @@ def update_physical():
         film = data["title"]
         physical_format = data["physical_format"]
 
-        dbutils.add_physical_copy(film, physical_format)
+        sql_query.add_physical_copy(film, physical_format)
         return {"message": "You've added a physical copy to your library"}, 200
     
     except mysql.connector.IntegrityError:
