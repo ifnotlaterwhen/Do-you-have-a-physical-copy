@@ -1,5 +1,12 @@
 from flask import Flask, jsonify
-from DButils import FilmDB #import the class
+from DButils import FilmDB,SQL_query
+from config import DB_manager
+from tmdb_api import TMDB_api
+import os
+from dotenv import load_dotenv
+load_dotenv()
+API_KEY = os.getenv("API_KEY")
+
 
 app = Flask(__name__)
 
@@ -33,9 +40,20 @@ def get_all_movies():
 # ===================================================================
 #                          HOW TO WATCH
 # ===================================================================
+@app.route("/api/how-to-watch/<movie>")
+def how_to_watch(movie: str):
+    stream_info = TMDB_api("https://api.themoviedb.org/3", API_KEY) #<- should this line of code be outside the function?
+    stream = stream_info.find_movie_subscription(movie)
+    if stream is None:
 
+        return jsonify({"error": "Couldn't get film data"}), 404
+    return jsonify(stream)
 
-
+@app.route("/api/owned-physical/<movie>", methods=["GET"])
+def physical_copy(movie):
+    physical = SQL_query(DB_manager())
+    result = physical.owned_copies(movie)
+    return jsonify(result)
 # ===================================================================
 #                         ADD PHYSICAL COPY
 # ===================================================================

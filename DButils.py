@@ -1,4 +1,6 @@
 # DButils.py handles all DB queries
+import mysql
+
 from config import DB_manager
 import json
 from itertools import chain
@@ -276,6 +278,32 @@ class FilmDB:
 # ===================================================================
 #                          HOW TO WATCH
 # ===================================================================
+class SQL_query:
+    def __init__(self,  db_manager):
+        self.db_manager = db_manager
+
+
+    def owned_copies(self, movie):
+        query = """
+            SELECT
+                CASE
+                    WHEN my_films.dvd_owned = TRUE THEN 'DVD'
+                    WHEN my_films.bluray_owned = TRUE THEN 'bluray'
+                    WHEN my_films.`4k_bluray_owned` = TRUE THEN '4k_bluray'
+                END AS owned_copy
+            FROM my_films
+            JOIN film_info
+                ON my_films.my_film_id = film_info.my_film_id
+            WHERE film_info.title = %s
+              AND (my_films.dvd_owned = TRUE
+                   OR my_films.bluray_owned = TRUE
+                   OR my_films.`4k_bluray_owned` = TRUE)
+        """
+
+        with self.db_manager.get_connection() as db:
+            with db.cursor() as curr:
+                curr.execute(query, (movie,))
+                return curr.fetchone()
 
     def how_to_watch(self, film_id):
         with self.db_manager.get_connection() as db:
