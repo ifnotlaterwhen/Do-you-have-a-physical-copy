@@ -1,11 +1,14 @@
 # DButils.py handles all DB queries
-import mysql
 
 from config import DB_manager
 import json
 from itertools import chain
 
-class FilmDB:
+# ===================================================================
+#                         INIT + SEED DATABASE
+# ===================================================================
+
+class seedDB:
     def __init__(self, db_name: str):
         self.db_name = db_name
         self.db_manager = DB_manager()
@@ -164,7 +167,15 @@ class FilmDB:
                             ))
                 db.commit()
 
-# olivia's note: this returns titles of all watched/owned movies. Checking this is the intended functionality?
+# ===================================================================
+#                         FETCH QUERIES
+# ===================================================================
+
+class FilmDB:
+    def __init__(self, db_name):
+        self.db_name = db_name
+        self.db_manager = DB_manager()
+
     def fetch_all_movies(self):
         with self.db_manager.get_connection() as db:
             with db.cursor() as cur:
@@ -178,20 +189,23 @@ class FilmDB:
                 
                 return cur.fetchall()
 
+# olivia's note : I have switched to left join across the two methods below
+# my thinking is if one field is missing, we still want the entry returned
+
     def fetch_overview(self):
         with self.db_manager.get_connection() as db:
             with db.cursor() as cur:
                 cur.execute(f"USE {self.db_name}")
-                cur.execute("""SELECT fi.title, GROUP_CONCAT(fg.genre_name SEPARATOR ", "), GROUP_CONCAT(DISTINCT d.name SEPARATOR ", ") ,GROUP_CONCAT(DISTINCT a.name SEPARATOR ", ") , mf.4k_bluray_owned, mf.bluray_owned, mf.dvd_owned
+                cur.execute("""SELECT fi.title, GROUP_CONCAT(DISTINCT fg.genre_name SEPARATOR ", "), GROUP_CONCAT(DISTINCT d.name SEPARATOR ", ") ,GROUP_CONCAT(DISTINCT a.name SEPARATOR ", ") , mf.4k_bluray_owned, mf.bluray_owned, mf.dvd_owned
                     FROM my_films mf
                     JOIN film_info fi ON mf.my_film_id = fi.my_film_id
-                    JOIN junc_directors jd ON fi.film_id = jd.film_id
-                    JOIN directors d ON jd.director_id = d.director_id
-                    JOIN junc_genres jg ON jg.film_id = fi.film_id
-                    JOIN film_genres fg ON fg.genre_id = jg.genre_id
-                    JOIN junc_actors ja ON ja.film_id = fi.film_id
-                    JOIN actors a ON a.actor_id = ja.actor_id
-                    GROUP BY jg.film_id
+                    LEFT JOIN junc_directors jd ON fi.film_id = jd.film_id
+                    LEFT JOIN directors d ON jd.director_id = d.director_id
+                    LEFT JOIN junc_genres jg ON jg.film_id = fi.film_id
+                    LEFT JOIN film_genres fg ON fg.genre_id = jg.genre_id
+                    LEFT JOIN junc_actors ja ON ja.film_id = fi.film_id
+                    LEFT JOIN actors a ON a.actor_id = ja.actor_id
+                    GROUP BY fi.film_id
                 """)
                 return [row for row in cur.fetchall()]
 
@@ -199,16 +213,16 @@ class FilmDB:
         with self.db_manager.get_connection() as db:
             with db.cursor() as cur:
                 cur.execute(f"USE {self.db_name}")
-                cur.execute("""SELECT fi.film_id, fi.title, GROUP_CONCAT(fg.genre_id SEPARATOR ", ") AS genre_id, GROUP_CONCAT(DISTINCT d.director_id SEPARATOR ", ") AS directed_id,GROUP_CONCAT(DISTINCT a.actor_id SEPARATOR ", ") AS actor_id
+                cur.execute("""SELECT fi.film_id, fi.title, GROUP_CONCAT(DISTINCT fg.genre_id SEPARATOR ", ") AS genre_id, GROUP_CONCAT(DISTINCT d.director_id SEPARATOR ", ") AS directed_id,GROUP_CONCAT(DISTINCT a.actor_id SEPARATOR ", ") AS actor_id
                     FROM my_films mf
                     JOIN film_info fi ON mf.my_film_id = fi.my_film_id
-                    JOIN junc_directors jd ON fi.film_id = jd.film_id
-                    JOIN directors d ON jd.director_id = d.director_id
-                    JOIN junc_genres jg ON jg.film_id = fi.film_id
-                    JOIN film_genres fg ON fg.genre_id = jg.genre_id
-                    JOIN junc_actors ja ON ja.film_id = fi.film_id
-                    JOIN actors a ON a.actor_id = ja.actor_id
-                    GROUP BY jg.film_id
+                    LEFT JOIN junc_directors jd ON fi.film_id = jd.film_id
+                    LEFT JOIN directors d ON jd.director_id = d.director_id
+                    LEFT JOIN junc_genres jg ON jg.film_id = fi.film_id
+                    LEFT JOIN film_genres fg ON fg.genre_id = jg.genre_id
+                    LEFT JOIN junc_actors ja ON ja.film_id = fi.film_id
+                    LEFT JOIN actors a ON a.actor_id = ja.actor_id
+                    GROUP BY fi.film_id
                 """)
                 return [row for row in cur.fetchall()]
 
@@ -224,7 +238,6 @@ class FilmDB:
                 WHERE my_films.my_film_id = %s
                 """, (fetch_film_id,))
                 return cur.fetchone()
-                #logic to get info of one single movie
 
 # ===================================================================
 #                        SEE WATCHED FILMS
@@ -266,50 +279,29 @@ class FilmDB:
                         OR my_films.`4k_bluray_owned` = True
                 """)
                 return cur.fetchall()
-            # backticks on 4k_bluray_owned as SQL doesn't like names starting with numbers               
 
-# ===================================================================
-#                        GET RECOMMENDATION
-# ===================================================================
-
-# the database logic for this one needs to output actor, director, and genre data from a film in the database
-# this will then be passed into an API request for top 3 similar
-
-# ===================================================================
-#                          HOW TO WATCH
-# ===================================================================
-class SQL_query:
-    def __init__(self,  db_manager):
-        self.db_manager = db_manager
-
-
-    def owned_copies(self, movie):
-        query = """
-            SELECT
-                CASE
-                    WHEN my_films.dvd_owned = TRUE THEN 'DVD'
-                    WHEN my_films.bluray_owned = TRUE THEN 'bluray'
-                    WHEN my_films.`4k_bluray_owned` = TRUE THEN '4k_bluray'
-                END AS owned_copy
-            FROM my_films
-            JOIN film_info
-                ON my_films.my_film_id = film_info.my_film_id
-            WHERE film_info.title = %s
-              AND (my_films.dvd_owned = TRUE
-                   OR my_films.bluray_owned = TRUE
-                   OR my_films.`4k_bluray_owned` = TRUE)
-        """
-
+    def fetch_owned_copy(self, movie):
         with self.db_manager.get_connection() as db:
-            with db.cursor() as curr:
-                curr.execute(query, (movie,))
-                return curr.fetchone()
+            with db.cursor() as cur:
+                cur.execute(f"USE {self.db_name}")
+                cur.execute("""
+                    SELECT
+                        CASE
+                            WHEN my_films.dvd_owned = TRUE THEN 'DVD'
+                            WHEN my_films.bluray_owned = TRUE THEN 'bluray'
+                            WHEN my_films.`4k_bluray_owned` = TRUE THEN '4k_bluray'
+                        END AS owned_copy
+                    FROM my_films
+                    JOIN film_info
+                        ON my_films.my_film_id = film_info.my_film_id
+                    WHERE film_info.title = %s
+                """, (movie,))
+                return cur.fetchone()
 
     def how_to_watch(self, film_id):
         with self.db_manager.get_connection() as db:
             with db.cursor(dictionary=True) as cur:
                 cur.execute(f"USE {self.db_name}")
-
                 cur.execute("""
                     SELECT title, api_film_TMDB_id
                     FROM film_info
@@ -318,34 +310,31 @@ class SQL_query:
 
                 return cur.fetchone()
                 
-# olivia's note: wouldn't this be an API query? Where we check against active subscriptions with existing .fetch_active_subs()
-# and check for physical copies with .fetch_physical_copies()
-
 # ===================================================================
 #                         ADD PHYSICAL COPY
 # ===================================================================
 
-    def add_physical_copy(self, film_id, copy_type):
-        with self.db_manager.get_connection() as db:
-            with db.cursor() as cur:
-                cur.execute(f"USE {self.db_name}")
+        def add_physical_copy(self, title, physical_format):
+            with self.db_manager.get_connection() as db:
+                with db.cursor() as cur:
+                    cur.execute(f"USE {self.db_name}")
 
-                copy_types = {
-                    "dvd": "dvd_owned",
-                    "bluray": "bluray_owned",
-                    "4k": "4k_bluray_owned"
-                }
+                    allowed_types = {
+                        "dvd_owned",
+                        "bluray_owned",
+                        "4k_bluray_owned"
+                    }
 
-                if copy_type not in copy_types:
-                    raise ValueError("Invalid copy type")
+                    if physical_format not in allowed_types:
+                        raise ValueError("Invalid physical format")
 
-                column = copy_types[copy_type]
-
-                cur.execute(f"""
-                    UPDATE my_films
-                    SET `{column}` = TRUE
-                    WHERE my_film_id = %s
-                """, (film_id,))
+                    cur.execute(f"""
+                        UPDATE my_films AS mf
+                        JOIN film_info AS fi
+                            on mf.my_film_id = fi.my_film_id
+                        SET mf.`{physical_format}` = TRUE
+                        WHERE fi.title = %s
+                    """, (title,))
 
             db.commit()
 
@@ -357,7 +346,6 @@ class SQL_query:
         with self.db_manager.get_connection() as db:
             with db.cursor() as cur:
                 cur.execute(f"USE {self.db_name}")
-
                 cur.execute("""
                     UPDATE my_films
                     SET watched = TRUE
@@ -370,27 +358,20 @@ class SQL_query:
 #                         SUBSCRIPTIONS
 # ===================================================================
 
-class SubsDB:
-    def __init__(self, db_name):
-        self.db_name = db_name
-        self.db_manager = DB_manager()
-
     def fetch_active_subs(self):
-         with self.db_manager.get_connection() as db:
-              with db.cursor(dictionary=True) as cur:
-                   cur.execute(f"USE {self.db_name}")
-                   cur.execute("""
-                   SELECT service, service_TMDB_id 
-                   FROM subscriptions
-                   WHERE active = TRUE""")
-                   return cur.fetchall()
-                   
-
-
+        with self.db_manager.get_connection() as db:
+            with db.cursor(dictionary=True) as cur:
+                cur.execute(f"USE {self.db_name}")
+                cur.execute("""
+                SELECT service, service_TMDB_id 
+                FROM subscriptions
+                WHERE active = TRUE""")
+                return cur.fetchall()
+              
 # Run commands
 
 def run():
-    test_db = FilmDB("cinefiles")
+    test_db = seedDB("cinefiles")
     test_db.init_db()
     test_db.seed_db_mock()
 
