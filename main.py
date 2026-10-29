@@ -1,5 +1,6 @@
 import requests
 from pprint import pprint
+from tabulate import tabulate
 
 class ValueTooLow(Exception):
     pass
@@ -95,12 +96,11 @@ def menu():
 # ===================================================================
 
 def show_DB():
-    # Reese's note: I realised we don't have a fuction for users to get an overview of their movies
-    # For now I will add show_DB, but we will discuss further what it does exactly
-    # this function should query cinefiles DB and show info of all watched/owned movies
-
-    all_movies = requests.get(f"{base_url}/api/all") #See app.py for this route
-    pprint(all_movies.json())
+    all_movies = requests.get(f"{base_url}/api/overview") #See app.py for this route
+    table = tabulate(all_movies.json()["data"], headers=['Title', 'genre', 'directed by', 'starring','4k bluray', 'blyray', 'dvd'], tablefmt='markdown')
+    # print(all_movies.json()["data"])
+    print(table)
+    return True
 
 # ===================================================================
 #                        GET RECOMMENDATION
@@ -258,7 +258,6 @@ def add_film_to_library(watched= True):
     except requests.exceptions.RequestException:
         print("Sorry there was an issue with your post request.")
 
-        
     if response.status_code not in (200, 201):
         print(f"Sorry there seemed to have been an error {response.json()['error']}")
     return film_title                        
