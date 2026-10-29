@@ -12,6 +12,16 @@ app = Flask(__name__)
 
 
 # ===================================================================
+#                           SEE OVERVIEW
+# ===================================================================
+
+@app.route('/api/overview')
+def get_overview():
+    print("in overview")
+    overview = FilmDB("cinefiles").fetch_overview()
+    return jsonify({"data": overview}), 200
+
+# ===================================================================
 #                        SEE WATCHED FILMS
 # ===================================================================
 
@@ -48,11 +58,11 @@ def physical_copy(movie):
 #                         ADD PHYSICAL COPY
 # ===================================================================
 
-@app.route('api/all/search')
+@app.route('/api/all/search')
 def find_film_id():
     return jsonify({"message": "Temporary code: endpoint is working!"}), 200
 
-@app.route('/api/all/<int:my_film_id', methods=['PATCH'])
+@app.route('/api/all/<int:my_film_id>', methods=['PATCH'])
 def update_physical():
     return jsonify({"message": "Temporary code: endpoint is working!"}), 200
 
@@ -66,6 +76,5 @@ def update_physical():
 #                         SUBSCRIPTIONS
 # ===================================================================
 
-
-if __name__== "__main__":
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)
