@@ -1,5 +1,7 @@
 import requests
 from pprint import pprint
+from app import how_to_watch
+from tabulate import tabulate
 
 class ValueTooLow(Exception):
     pass
@@ -70,9 +72,9 @@ def menu():
         # else:
         #     print("Pease enter a number on the menu (1-7)")
         except ValueTooLow:
-            print("\nPease enter a number on the menu (1-7)\n")
+            print("\nNumber too low. Pease enter a number on the menu (1-7)\n")
         except ValueTooHigh:
-            print("\nPease enter a number on the menu (1-7)\n")
+            print("\nNumber too high. Pease enter a number on the menu (1-7)\n")
 
 
 # def return_to_menu():
@@ -95,12 +97,11 @@ def menu():
 # ===================================================================
 
 def show_DB():
-    # Reese's note: I realised we don't have a fuction for users to get an overview of their movies
-    # For now I will add show_DB, but we will discuss further what it does exactly
-    # this function should query cinefiles DB and show info of all watched/owned movies
-
-    all_movies = requests.get(f"{base_url}/api/all") #See app.py for this route
-    pprint(all_movies.json())
+    all_movies = requests.get(f"{base_url}/api/overview") #See app.py for this route
+    table = tabulate(all_movies.json()["data"], headers=['Title', 'genre', 'directed by', 'starring','4k bluray', 'blyray', 'dvd'], tablefmt='markdown')
+    # print(all_movies.json()["data"])
+    print(table)
+    return True
 
 # ===================================================================
 #                        GET RECOMMENDATION
@@ -122,7 +123,28 @@ def how_watch():
     # should we consider resuability, like when/if the users go to a specific movie info page, 
     # they should be able to call this function too?
     # need to also note if any physical copy, and what format(s)
-    pass
+
+    movie_title = input("What movie whould you like to know where to stream?")
+    if not movie_title:
+        print("Please type the name of the movie")
+        return None
+
+    streaming = requests.get(f"http://127.0.0.1:5000/api/how-to-watch/{movie_title}")
+    owned = requests.get(f"http://127.0.0.1:5000/api/owned-physical/{movie_title}")
+    if owned.status_code == 200:
+        owned_copy = owned.json()
+    else:
+        owned_copy = None
+
+    if owned_copy:
+        print(f"You have {movie_title} on {owned_copy}")
+    else:
+        print(f"you do not own {movie_title}. But...")
+
+    return streaming.json()
+
+
+
 
 # ===================================================================
 #                         ADD PHYSICAL COPY
@@ -135,21 +157,6 @@ def how_watch():
 
 # below is on the basis that the film already exists in the database.
 
-def physical_options():
-    print("\nWhich physical format do you want to add? ")
-    choice = physical_menu()
-    if choice == 1:
-        return {"dvd_owned" : True}
-    elif choice == 2:
-        return {"bluray_owned" : True}
-    elif choice == 3:
-        return {"4k_bluray_owned" : True}
-    elif choice == 4:
-        print("\nGoing back to the Main Menu\n")
-        return None
-    elif choice == 5:
-        exit()          # should it exit this way? better way to do it?
-
 def physical_menu():
     print("""
 [1] DVD
@@ -158,71 +165,109 @@ def physical_menu():
 [4] Return to Main Menu
 [5] Exit\n""")
 
-    # choice = 1
     while True:
         try:
-            choice = int(input("Please enter the number from the menu: "))
-            # if 1<= choice <= 5:
-
+            choice = int(input("Please enter the number from the menu: ").strip())
             if choice < 1:
                 raise ValueTooLow
             if choice > 5:
                 raise ValueTooHigh
-            
             return choice
-        
-            # else:
-            #     print("Pease enter a number on the menu (1-5)")
         except ValueError:
             print("Please enter a valid number")
         except ValueTooLow:
-                    print("\nPease enter a number on the menu (1-7)\n")
+            print("\nNumber too low. Pease enter a number on the menu (1-5)\n")
         except ValueTooHigh:
-            print("\nPease enter a number on the menu (1-7)\n")
+            print("\nNumber too high. Pease enter a number on the menu (1-5)\n")
+
+def physical_options():
+    print("\nWhich physical format do you want to add? ")
+    choice = physical_menu()
+    if choice == 1:
+        return "dvd_owned"
+    elif choice == 2:
+        return "bluray_owned"
+    elif choice == 3:
+        return "4k_bluray_owned"
+    elif choice == 4:
+        print("\nGoing back to the Main Menu\n")
+        return None
+    elif choice == 5:
+        return "exit"
 
 def log_physical():
     
-    # try:
-        data = physical_options()
+    # call whichever adding film function from Stéphanie, which should also update univeral current_film variable - RB
 
-        if data is None:
+    physical_format = physical_options()
+
+    if physical_format is None:
+        return
+
+    if physical_format == "exit":
+        return True
+
+    data = {
+        "title" : current_film,
+        "physical_format" : physical_format
+    }
+
+    try:
+        url = (f"{base_url}/api/all/physical")
+        response = requests.patch(url, json=data)
+        if response.status_code == 200:
+            print("\nYour physical copy has been stored in your library")
             return
-
-        # Find film ID:
-
-        url_search = (f"{base_url}/api/all/search")
-        response = requests.get(url_search, json=data)
-
-        if response.status_code == 200:
-            film_search = response.json()
-            my_film_id = film_search["my_film_id"]
-        else:
-            print(f'\n** Error: {response.json()["error"]} **')
-            return  # Need something for menu stuff here?
-
-        # Update physical format info:
-
-        url_id = (f"{base_url}/api/all/{my_film_id}")
-        response = requests.patch(url_id, json=data)
-
-        if response.status_code == 200:
-            print("\nYour physical copy has been stored to your library")
-            return  # Need something for menu stuff here?                          
         else:
             print(f'\nSorry there was an error: {response.json()["error"]}')
-            return  # Need something for menu stuff here?
-
-    # except requests.exceptions.RequestException: # Error for Flask communication not happening
+            return
+    except requests.exceptions.RequestException:
         print("\nSorry, there was an issue. Make sure app.py is running and then run main.py again\n")
-        return True
-        # ask if go back to main menu or exit? or just exit for them??
+        return
+
+    # # Find film ID:
+
+    # url_search = (f"{base_url}/api/all/search")
+    # response = requests.get(url_search, json=data)
+
+    # if response.status_code == 200:
+    #     film_search = response.json()
+    #     my_film_id = film_search["my_film_id"]
+    # else:
+    #     print(f'\n** Error: {response.json()["error"]} **')
+    #     return  # Need something for menu stuff here?
+
+    # # Update physical format info:
+
+    # url_id = (f"{base_url}/api/all/{my_film_id}")
+    # response = requests.patch(url_id, json=data)
+
+    # if response.status_code == 200:
+    #     print("\nYour physical copy has been stored to your library")
+    #     return  # Need something for menu stuff here?                          
+    # else:
+    #     print(f'\nSorry there was an error: {response.json()["error"]}')
+    #     return  # Need something for menu stuff here?
+
+    # # except requests.exceptions.RequestException: # Error for Flask communication not happening
+    #     print("\nSorry, there was an issue. Make sure app.py is running and then run main.py again\n")
+    #     return True
+    #     # ask if go back to main menu or exit? or just exit for them??
 
 # ===================================================================
 #                         ADD WATCHED FILM
 # ===================================================================
 
+# Can I check your logic will handle the below please - RB
+#   - Checks for an existing film before inserting. 
+#   - Adds a new film to the DB if necessary (which gets the TMDB API to give you relevant metadata needed to populate the DB).
+#   - Returns the film title to current_film global variable.
+
 #Stéphanie
 def add_films():
+    global current_film     # just adding this so that the current_film variable up the top of the file acts properly as a global one - RB
+    
+    current_film = input("What's the film title you want to add to the library?").lower() # do we want to make this lower? shouldn't we retain capitalisation for when titles get returned to the user? - RB
 
     film_title = add_film_to_library(watched = True)
 
@@ -232,20 +277,22 @@ def add_films():
     
     print(f"\n'{film_title}' has been added to your watched films.")
         
-    owns_copy = input("Do you own a physical copy of the film?\n y/n? ").lower()
-    if owns_copy == 'y':
-       log_physical()
+    # owns_copy = input("Do you own a physical copy of the film?\n y/n? ").lower()      # can we remove the call for Add Physical logic from your function? makes the logic a bit more funky for me using yours to check a title is on the DB. They can just add a physical copy easily from the main menu as needed - RB
+    # if owns_copy == 'y':
+    #    log_physical()
 
-    elif owns_copy == "n":
-        print("No worries, your film has been saved without a physical copy.")
+    # elif owns_copy == "n":
+    #     print("No worries, your film has been saved without a physical copy.")
     
-    else:
-        print("Please enter y or n")
+    # else:
+    #     print("Please enter y or n")
 
 def add_film_to_library(watched= True):
     global current_film 
 
-    film_title = input("Please enter the name of the film you've watched:")
+    # does this need a check to see if the title is already on the DB, or is that handled elsewhere? - RB
+
+    film_title = input("Please enter the name of the film:")        # remove? already asked in add_films. Let me know which way round you have the title and other logic from, and I'll call that one from my Add Physical stuff - RB
     if not film_title:
         print("Please enter a valid title.")
     
@@ -258,7 +305,6 @@ def add_film_to_library(watched= True):
     except requests.exceptions.RequestException:
         print("Sorry there was an issue with your post request.")
 
-        
     if response.status_code not in (200, 201):
         print(f"Sorry there seemed to have been an error {response.json()['error']}")
     current_film = film_title 

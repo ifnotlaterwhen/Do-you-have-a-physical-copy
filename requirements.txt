@@ -3,3 +3,5 @@ mysql-connector-python
 requests
 flask
 python-dotenv
+pytest-mock
+tabulate
