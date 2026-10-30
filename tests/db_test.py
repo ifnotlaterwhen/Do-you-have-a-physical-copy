@@ -1,11 +1,11 @@
 import pytest
 from config import DB_manager
-from DButils import FilmDB
+from DButils import seedDB
 from itertools import chain
 
 @pytest.fixture
 def clean_db():
-    cleanDB = FilmDB("cinefiles")
+    cleanDB = seedDB("cinefiles")
     cleanDB.init_db()
     cleanDB.seed_db_mock()
 
