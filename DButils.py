@@ -209,6 +209,7 @@ class FilmDB:
                     JOIN junc_actors ja ON ja.film_id = fi.film_id
                     JOIN actors a ON a.actor_id = ja.actor_id
                     GROUP BY jg.film_id
+
                 """)
                 return [row for row in cur.fetchall()]
 

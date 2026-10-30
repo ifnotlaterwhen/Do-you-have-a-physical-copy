@@ -12,6 +12,7 @@ class Graph():
 
     def connections(self, node1, node2):
         self.adjacency[node1].add(node2)
+        self.adjacency[node2].add(node1)
 
 
     def graph_connection(self):
