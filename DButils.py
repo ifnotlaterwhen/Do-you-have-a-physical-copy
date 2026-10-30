@@ -279,8 +279,9 @@ class FilmDB:
 #                          HOW TO WATCH
 # ===================================================================
 class SQL_query:
-    def __init__(self,  db_manager):
+    def __init__(self,  db_manager, db_name="cinefiles"):
         self.db_manager = db_manager
+        self.db_name = db_name      # added when I was getting "AttributeError: 'SQL_query' object has no attribute 'db_name'" error when running app.py for live test of ADD PHYSICAL COPY - RB
 
 
     def owned_copies(self, movie):
