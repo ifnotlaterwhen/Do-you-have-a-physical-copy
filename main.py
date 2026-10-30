@@ -264,48 +264,40 @@ def log_physical():
 #   - Returns the film title to current_film global variable.
 
 #Stéphanie
-def add_films():
-    global current_film     # just adding this so that the current_film variable up the top of the file acts properly as a global one - RB
-    
-    current_film = input("What's the film title you want to add to the library?").lower() # do we want to make this lower? shouldn't we retain capitalisation for when titles get returned to the user? - RB
+def add_films(): 
 
-    film_title = add_film_to_library(watched = True)
+    film_title = input("What film would you like to add to the library?")
+    if not film_title:
+        print("Please enrer a film title.")
+        
+        
+    added_title = add_film_to_library(watched = True)
 
-    if film_title is None:
+    if added_title is None:
         print("\nGoing back to the Main Menu\n")
         return None
     
     print(f"\n'{film_title}' has been added to your watched films.")
         
-    # owns_copy = input("Do you own a physical copy of the film?\n y/n? ").lower()      # can we remove the call for Add Physical logic from your function? makes the logic a bit more funky for me using yours to check a title is on the DB. They can just add a physical copy easily from the main menu as needed - RB
-    # if owns_copy == 'y':
-    #    log_physical()
 
-    # elif owns_copy == "n":
-    #     print("No worries, your film has been saved without a physical copy.")
-    
-    # else:
-    #     print("Please enter y or n")
 
-def add_film_to_library(watched= True):
+def add_film_to_library(film_title, watched= True):
+    global current_film 
 
-    # does this need a check to see if the title is already on the DB, or is that handled elsewhere? - RB
-
-    film_title = input("Please enter the name of the film:")        # remove? already asked in add_films. Let me know which way round you have the title and other logic from, and I'll call that one from my Add Physical stuff - RB
-    if not film_title:
-        print("Please enter a valid title.")
-    
-          
     film_data = {"title": film_title, "watched": watched}
     
     try:
-        response = requests.post(f"{base_url}/api/all", json= film_data)
+        response = requests.post(f"{base_url}/api/all/watched_film", json= film_data)
     
     except requests.exceptions.RequestException:
         print("Sorry there was an issue with your post request.")
+        return None 
 
     if response.status_code not in (200, 201):
-        print(f"Sorry there seemed to have been an error {response.json()['error']}")
+        print(f"Sorry there seems to be an error {response.json()['error']}")
+        return None 
+    
+    current_film = film_title 
     return film_title                        
 
  
