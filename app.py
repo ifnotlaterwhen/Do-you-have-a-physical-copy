@@ -1,5 +1,5 @@
 from flask import Flask, jsonify
-from DButils import FilmDB,SQL_query
+from DButils import FilmDB
 from config import DB_manager
 from tmdb_api import TMDB_api
 import os
@@ -51,7 +51,7 @@ def how_to_watch(movie: str):
 
 @app.route("/api/owned-physical/<movie>", methods=["GET"])
 def physical_copy(movie):
-    physical = SQL_query(DB_manager())
+    physical = FilmDB(DB_manager())
     result = physical.owned_copies(movie)
     return jsonify(result)
 # ===================================================================
