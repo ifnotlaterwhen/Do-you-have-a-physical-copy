@@ -182,7 +182,7 @@ class FilmDB:
         with self.db_manager.get_connection() as db:
             with db.cursor() as cur:
                 cur.execute(f"USE {self.db_name}")
-                cur.execute("""SELECT fi.title, GROUP_CONCAT(fg.genre_name SEPARATOR ", "), GROUP_CONCAT(DISTINCT d.name SEPARATOR ", ") ,GROUP_CONCAT(DISTINCT a.name SEPARATOR ", ") , mf.4k_bluray_owned, mf.bluray_owned, mf.dvd_owned
+                cur.execute("""SELECT fi.title, GROUP_CONCAT(fg.genre_name SEPARATOR ", ") AS genre_name, GROUP_CONCAT(DISTINCT d.name SEPARATOR ", ") AS directed_name  ,GROUP_CONCAT(DISTINCT a.name SEPARATOR ", ") AS actor_name 
                     FROM my_films mf
                     JOIN film_info fi ON mf.my_film_id = fi.my_film_id
                     JOIN junc_directors jd ON fi.film_id = jd.film_id
@@ -197,9 +197,9 @@ class FilmDB:
 
     def fetch_info_for_graph(self):
         with self.db_manager.get_connection() as db:
-            with db.cursor() as cur:
+            with db.cursor(dictionary=True) as cur:
                 cur.execute(f"USE {self.db_name}")
-                cur.execute("""SELECT fi.film_id, fi.title, GROUP_CONCAT(fg.genre_id SEPARATOR ", ") AS genre_id, GROUP_CONCAT(DISTINCT d.director_id SEPARATOR ", ") AS directed_id,GROUP_CONCAT(DISTINCT a.actor_id SEPARATOR ", ") AS actor_id
+                cur.execute("""SELECT fi.title, GROUP_CONCAT(fg.genre_name SEPARATOR ", ") AS genre, GROUP_CONCAT(DISTINCT d.name SEPARATOR ", ") AS directors, GROUP_CONCAT(DISTINCT a.name SEPARATOR ", ") AS actors
                     FROM my_films mf
                     JOIN film_info fi ON mf.my_film_id = fi.my_film_id
                     JOIN junc_directors jd ON fi.film_id = jd.film_id
@@ -280,10 +280,16 @@ class FilmDB:
 #                          HOW TO WATCH
 # ===================================================================
 class SQL_query:
+
     def __init__(self,  db_manager, db_name):
         self.db_manager = db_manager
         self.db_name = db_name
 
+
+
+    def __init__(self,  db_manager, db_name="cinefiles"):
+        self.db_manager = db_manager
+        self.db_name = db_name      # added when I was getting "AttributeError: 'SQL_query' object has no attribute 'db_name'" error when running app.py for live test of ADD PHYSICAL COPY - RB
 
 
 
@@ -329,29 +335,55 @@ class SQL_query:
 #                         ADD PHYSICAL COPY
 # ===================================================================
 
-    def add_physical_copy(self, film_id, copy_type):
+    # tweaked this, as I changed my logic in main/app so the name of the film itself passes through - RB
+
+    def add_physical_copy(self, title, physical_format):
         with self.db_manager.get_connection() as db:
             with db.cursor() as cur:
                 cur.execute(f"USE {self.db_name}")
 
-                copy_types = {
-                    "dvd": "dvd_owned",
-                    "bluray": "bluray_owned",
-                    "4k": "4k_bluray_owned"
+                allowed_types = {
+                    "dvd_owned",
+                    "bluray_owned",
+                    "4k_bluray_owned"
                 }
 
-                if copy_type not in copy_types:
-                    raise ValueError("Invalid copy type")
-
-                column = copy_types[copy_type]
+                if physical_format not in allowed_types:
+                    raise ValueError("Invalid physical format")
 
                 cur.execute(f"""
-                    UPDATE my_films
-                    SET `{column}` = TRUE
-                    WHERE my_film_id = %s
-                """, (film_id,))
+                    UPDATE my_films AS mf
+                    JOIN film_info AS fi
+                        on mf.my_film_id = fi.my_film_id
+                    SET mf.`{physical_format}` = TRUE
+                    WHERE fi.title = %s
+                """, (title,))
 
             db.commit()
+
+    # def add_physical_copy(self, film_id, copy_type):
+    #     with self.db_manager.get_connection() as db:
+    #         with db.cursor() as cur:
+    #             cur.execute(f"USE {self.db_name}")
+
+    #             copy_types = {
+    #                 "dvd": "dvd_owned",
+    #                 "bluray": "bluray_owned",
+    #                 "4k": "4k_bluray_owned"
+    #             }
+
+    #             if copy_type not in copy_types:
+    #                 raise ValueError("Invalid copy type")
+
+    #             column = copy_types[copy_type]
+
+    #             cur.execute(f"""
+    #                 UPDATE my_films
+    #                 SET `{column}` = TRUE
+    #                 WHERE my_film_id = %s
+    #             """, (film_id,))
+
+    #         db.commit()
 
 # ===================================================================
 #                         ADD WATCHED FILM
