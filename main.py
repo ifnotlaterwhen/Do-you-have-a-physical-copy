@@ -326,3 +326,5 @@ def adjust_subscription():
     # 2. remove a subscrfiption from the list.
    pass
 
+if __name__ == "__main__":
+    run()
