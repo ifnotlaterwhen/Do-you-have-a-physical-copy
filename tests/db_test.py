@@ -1,6 +1,7 @@
 import pytest
 from config import DB_manager
 from DButils import FilmDB
+from itertools import chain
 
 @pytest.fixture
 def clean_db():
@@ -13,10 +14,7 @@ def test_db_setup(clean_db):
         with db.cursor() as cur:
             cur.execute("USE cinefiles")
             cur.execute("SHOW TABLES")
-            result = cur.fetchall()
-            tables = []
-            for row in result:
-                tables.append(row[0])
+            result = list(chain.from_iterable(cur.fetchall()))
             assert ("actors"
                 and "directors"
                 and "film_genres"
@@ -25,5 +23,5 @@ def test_db_setup(clean_db):
                 and "junc_directors"
                 and "junc_genres"
                 and "my_films"
-                and "subscriptions") in tables
+                and "subscriptions") in result
             

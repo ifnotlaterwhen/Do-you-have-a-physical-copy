@@ -1,6 +1,7 @@
 import requests
 from pprint import pprint
 from app import how_to_watch
+from tabulate import tabulate
 
 class ValueTooLow(Exception):
     pass
@@ -8,6 +9,7 @@ class ValueTooHigh(Exception):
     pass
 
 base_url = "http://127.0.0.1:5000"
+current_film = ""
 
 def run():
     print("\nWelcome to Cinefiles")
@@ -95,12 +97,11 @@ def menu():
 # ===================================================================
 
 def show_DB():
-    # Reese's note: I realised we don't have a fuction for users to get an overview of their movies
-    # For now I will add show_DB, but we will discuss further what it does exactly
-    # this function should query cinefiles DB and show info of all watched/owned movies
-
-    all_movies = requests.get(f"{base_url}/api/all") #See app.py for this route
-    pprint(all_movies.json())
+    all_movies = requests.get(f"{base_url}/api/overview") #See app.py for this route
+    table = tabulate(all_movies.json()["data"], headers=['Title', 'genre', 'directed by', 'starring','4k bluray', 'blyray', 'dvd'], tablefmt='markdown')
+    # print(all_movies.json()["data"])
+    print(table)
+    return True
 
 # ===================================================================
 #                        GET RECOMMENDATION
@@ -244,16 +245,46 @@ def log_physical():
 
 #Stéphanie
 def add_films():
-    # This allows users to add a film that they have watched.
-    # It should also allow them to say if they already have a physical copy when adding the film.
-    # 2 potential ways to do this: 
-    # Option 1: We collect user input in a dict (film name, watched, physical copy owned etc) 
-    #   and add that to the DB via 1 single query
-    # Option 2: Add the new film to the DB without stating physical copy in the query body (should default to False),
-    #   then call log_physical() to handle it .
-    # Reese's message to Stéphanie: Lmk your thoughts.
-    pass
+    current_film = input("What's the film title you want to add to the library?").lower()
 
+    film_title = add_film_to_library(watched = True)
+
+    if film_title is None:
+        print("\nGoing back to the Main Menu\n")
+        return None
+    
+    print(f"\n'{film_title}' has been added to your watched films.")
+        
+    owns_copy = input("Do you own a physical copy of the film?\n y/n? ").lower()
+    if owns_copy == 'y':
+       log_physical()
+
+    elif owns_copy == "n":
+        print("No worries, your film has been saved without a physical copy.")
+    
+    else:
+        print("Please enter y or n")
+
+def add_film_to_library(watched= True):
+
+    film_title = input("Please enter the name of the film:")
+    if not film_title:
+        print("Please enter a valid title.")
+    
+          
+    film_data = {"title": film_title, "watched": watched}
+    
+    try:
+        response = requests.post(f"{base_url}/api/all", json= film_data)
+    
+    except requests.exceptions.RequestException:
+        print("Sorry there was an issue with your post request.")
+
+    if response.status_code not in (200, 201):
+        print(f"Sorry there seemed to have been an error {response.json()['error']}")
+    return film_title                        
+
+ 
 # ===================================================================
 #                         SUBSCRIPTIONS
 # ===================================================================
