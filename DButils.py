@@ -199,7 +199,7 @@ class FilmDB:
         with self.db_manager.get_connection() as db:
             with db.cursor() as cur:
                 cur.execute(f"USE {self.db_name}")
-                cur.execute("""SELECT fi.film_id, fi.title, GROUP_CONCAT(fg.genre_id SEPARATOR ", ") AS genre_id, GROUP_CONCAT(DISTINCT d.director_id SEPARATOR ", ") AS directed_id,GROUP_CONCAT(DISTINCT a.actor_id SEPARATOR ", ") AS actor_id
+                cur.execute("""SELECT fi.title, GROUP_CONCAT(fg.genre_name SEPARATOR ", ") AS genrer, GROUP_CONCAT(DISTINCT d.name SEPARATOR ", ") AS directors,GROUP_CONCAT(DISTINCT a.name SEPARATOR ", ") AS actors
                     FROM my_films mf
                     JOIN film_info fi ON mf.my_film_id = fi.my_film_id
                     JOIN junc_directors jd ON fi.film_id = jd.film_id
