@@ -3,6 +3,7 @@ from DButils import FilmDB,SQL_query
 from config import DB_manager
 from tmdb_api import TMDB_api
 import os
+import requests
 from dotenv import load_dotenv
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
@@ -92,16 +93,33 @@ def update_physical():
 # ===================================================================
 #                         ADD WATCHED FILM
 # ===================================================================
-@app.route("api/all/film_info")
+@app.route("/api/all/film_info")
 def get_film_info():
-    title = requests.get("film_title")
-    return jsonify ({"message": "Success!"}), 200 
+    title = requests.args.get("film_title", "")
+    if not title:
+       return jsonify({"error": "film_title is required."}), 400
+
+
+    film = tmdb.search_movie(title)
+    if film is None:
+        return jsonify ({"error": "Couldn't get film data"}), 404
+    return jsonify(film), 200
+
 
 @app.route('/api/all/watched_film', methods =["POST"])
 def add_films():
     data = request.get_json()
+    title = (data.get("title"))
+    if not title:
+        return jsonify({"error": "Film title is required"}), 400
 
-    return jsonify ({"message": "Success!"}), 200
+    existing_titles = [row[0].lower() for row in dbutils.fetch_all_movies()]
+    if title.lower() in existing_titles:
+        return jsonify({"error": f"{title} is already in your library"}), 400
+
+    sql_query.new_watched_film(title)
+    return jsonify ({"title": title, "watched": True}), 200
+     
 
 
 
