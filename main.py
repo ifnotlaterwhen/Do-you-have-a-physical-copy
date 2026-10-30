@@ -223,7 +223,6 @@ def log_physical():
 
 #Stéphanie
 def add_films():
-    current_film = input("What's the film title you want to add to the library?").lower()
 
     film_title = add_film_to_library(watched = True)
 
@@ -244,8 +243,9 @@ def add_films():
         print("Please enter y or n")
 
 def add_film_to_library(watched= True):
+    global current_film 
 
-    film_title = input("Please enter the name of the film:")
+    film_title = input("Please enter the name of the film you've watched:")
     if not film_title:
         print("Please enter a valid title.")
     
@@ -261,6 +261,7 @@ def add_film_to_library(watched= True):
         
     if response.status_code not in (200, 201):
         print(f"Sorry there seemed to have been an error {response.json()['error']}")
+    current_film = film_title 
     return film_title                        
 
  

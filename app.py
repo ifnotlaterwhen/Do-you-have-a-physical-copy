@@ -1,5 +1,6 @@
 from flask import Flask, jsonify
 from DButils import FilmDB #import the class
+import requests
 
 app = Flask(__name__)
 
@@ -40,6 +41,17 @@ def update_physical():
 # ===================================================================
 #                         ADD WATCHED FILM
 # ===================================================================
+@app.route("api/all/film_info")
+def get_film_info():
+    title = requests.get("film_title")
+    return jsonify ({"message": "Success!"}), 200 
+
+@app.route('/api/all/watched_film', methods =["POST"])
+def add_films():
+    data = request.get_json()
+
+    return jsonify ({"message": "Success!"}), 200
+
 
 
 
