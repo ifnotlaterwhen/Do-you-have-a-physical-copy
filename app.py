@@ -8,8 +8,12 @@ load_dotenv()
 API_KEY = os.getenv("API_KEY")
 
 
+import mysql.connector
+
 app = Flask(__name__)
 
+dbutils = FilmDB("cinefiles")      # creates instance of FilmDB class - RB
+sql_query = FilmDB(DB_manager())     # added now that add_physical_copy in class SQL_query - RB
 
 # ===================================================================
 #                           SEE OVERVIEW
@@ -58,13 +62,32 @@ def physical_copy(movie):
 #                         ADD PHYSICAL COPY
 # ===================================================================
 
-@app.route('/api/all/search')
-def find_film_id():
-    return jsonify({"message": "Temporary code: endpoint is working!"}), 200
-
-@app.route('/api/all/<int:my_film_id>', methods=['PATCH'])
+@app.route('/api/all/physical', methods=['PATCH'])
 def update_physical():
-    return jsonify({"message": "Temporary code: endpoint is working!"}), 200
+    try:
+        data = request.json
+        film = data["title"]
+        physical_format = data["physical_format"]
+
+        sql_query.add_physical_copy(film, physical_format)
+        return {"message": "You've added a physical copy to your library"}, 200
+    
+    except mysql.connector.IntegrityError:
+        return jsonify({"error": "There was a problem adding this format to your library."}), 409 # Conflict
+
+    except ValueError:
+        return jsonify({"error": "Invalid physical format"}), 400
+    
+    except mysql.connector.Error:
+        return jsonify({"error": "There was a problem with the database"}), 500 # Internal Server Error
+
+# @app.route('api/all/search')
+# def find_film_id():
+#     return jsonify({"message": "Temporary code: endpoint is working!"}), 200
+
+# @app.route('/api/all/<int:my_film_id', methods=['PATCH'])
+# def update_physical():
+#     return jsonify({"message": "Temporary code: endpoint is working!"}), 200
 
 # ===================================================================
 #                         ADD WATCHED FILM
