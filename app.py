@@ -41,7 +41,7 @@ def how_to_watch(movie: str):
 
 @app.route("/api/owned-physical/<movie>", methods=["GET"])
 def physical_copy(movie):
-    physical = SQL_query(DB_manager())
+    physical = SQL_query(DB_manager(),movie)
     result = physical.owned_copies(movie)
     return jsonify(result)
 # ===================================================================

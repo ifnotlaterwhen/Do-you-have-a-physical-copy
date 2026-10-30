@@ -195,8 +195,11 @@ test_db.seed_db_mock()
 #                          HOW TO WATCH
 # ===================================================================
 class SQL_query:
-    def __init__(self,  db_manager):
+    def __init__(self,  db_manager, db_name):
         self.db_manager = db_manager
+        self.db_name = db_name
+
+
 
 
     def owned_copies(self, movie):
