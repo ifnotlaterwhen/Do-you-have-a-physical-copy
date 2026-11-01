@@ -397,16 +397,15 @@ class SQL_query:
         with self.db_manager.get_connection() as db:
             with db.cursor() as cur:
                 cur.execute(f"USE {self.db_name}")
+
+                cur.execute("INSERT INTO my_films (watched) VALUES (%s)", (True,))
+                my_film_id = cur.lastrowid    
         
-                cur.execute("""
-                    INSERT INTO my_films(watched, dvd_owned, bluray_owned, 4k_bluray_owned)
-                    VALUES(TRUE, FALSE, FALSE, FALSE)
-                    """)
-                cur.execute("""
-                    INSERT INTO film_info (my_film_id, title)
-                    VALUES (%s, %s)
-                    """, (cur.lastrowid, title))
-                
+                cur.execute(
+                    "INSERT INTO film_info (my_film_id, title) VALUES (%s, %s)",
+                    (my_film_id, title),
+                )
+            
             db.commit()
                 
 

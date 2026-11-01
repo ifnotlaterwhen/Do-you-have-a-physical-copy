@@ -93,31 +93,46 @@ def update_physical():
 # ===================================================================
 #                         ADD WATCHED FILM
 # ===================================================================
+TMDB_BASE = "https://api.themoviedb.org/3"
+
 @app.route("/api/all/film_info")
 def get_film_info():
-    title = requests.args.get("film_title", "")
+    title = request.args.get("film_title", "")
     if not title:
        return jsonify({"error": "film_title is required."}), 400
 
+    try:
+        search = requests.get(f"{TMDB_BASE}/search/movie",
+                            params={"query": title, "api_key": API_KEY},
+                            timeout=10)
+        search.raise_for_status()
+        results = search.json().get("results", [])
+    except requests.exceptions.RequestException:
+        return jsonify ({"error":"Couldn't reach TMDB"}), 502
 
-    film = tmdb.search_movie(title)
-    if film is None:
-        return jsonify ({"error": "Couldn't get film data"}), 404
-    return jsonify(film), 200
+    if not results:
+        return jsonify({"error":"Couldn't get data."}), 404
+      
+    return jsonify(results[0]), 200
 
 
 @app.route('/api/all/watched_film', methods =["POST"])
-def add_films():
+def add_watched_films():
     data = request.get_json()
     title = (data.get("title"))
     if not title:
         return jsonify({"error": "Film title is required"}), 400
+    
+    try:
+        existing_titles = [row[0].lower() for row in dbutils.fetch_all_movies()]
+        if title.lower() in existing_titles:
+             return jsonify({"error": f"{title} is already in your library"}), 409
 
-    existing_titles = [row[0].lower() for row in dbutils.fetch_all_movies()]
-    if title.lower() in existing_titles:
-        return jsonify({"error": f"{title} is already in your library"}), 400
+        sql_query.new_watched_film(title)
 
-    sql_query.new_watched_film(title)
+    except mysql.connector.Error:
+           return jsonify ({"error": "There seems to be an error with the database."}), 500
+    
     return jsonify ({"title": title, "watched": True}), 200
      
 
