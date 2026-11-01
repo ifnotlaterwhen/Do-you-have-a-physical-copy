@@ -36,3 +36,21 @@ def test_build():
     assert "Genre:Sci-Fi" in interstellar
     assert "Genre:Drama" in interstellar
     mock_db.fetch_info_for_graph.assert_called_once()
+
+def test_dfs():
+    mock_graph = MagicMock()
+    mock_graph.adjacency = {
+        "Movie:A": {"Director:Nolan", "Actor:Leo", "Genre:Sci-Fi", "Genre:Action"},
+        "Movie:B": {"Director:Nolan", "Actor:Leo", "Genre:Sci-Fi"},
+        "Movie:C": {"Director:Nolan", "Actor:Leo", "Genre:Sci-Fi"},
+        "Movie:D": {"Director:Nolan", "Actor:Leo", "Genre:Sci-Fi"},
+        "Director:Nolan": {"Movie:A", "Movie:B", "Movie:C", "Movie:D"},
+        "Actor:Leo": {"Movie:A", "Movie:B", "Movie:C", "Movie:D"},
+        "Genre:Sci-Fi": {"Movie:A", "Movie:B", "Movie:C", "Movie:D"},
+        "Genre:Action": {"Movie:A"},
+    }
+
+    genres, people = Recommendation(mock_graph, MagicMock()).dfs("Movie:A")
+
+    assert genres == {"Genre:Sci-Fi":4}
+    assert people == {"Director:Nolan":4, "Actor:Leo":4}

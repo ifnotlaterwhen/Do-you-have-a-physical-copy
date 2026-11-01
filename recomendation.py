@@ -1,5 +1,7 @@
 from graph import Graph
 from DButils import FilmDB
+from collections import Counter, defaultdict
+
 
 class Recommendation:
     def __init__(self, graph,db):
@@ -33,7 +35,36 @@ class Recommendation:
 
         return self.graph
 
+    def dfs(self, start_node):
+        seen = set()
+        frequency = defaultdict(int)
+        top_nodes = 4
+        def visit(node):
+            seen.add(node)
+            for neighbor in self.graph.adjacency[node]:
+                frequency[neighbor] +=1
+                if neighbor not in seen:
+                    visit(neighbor)
+
+        visit(start_node)
+
+        genres = {}    #<- created 2 dicts to store the top genres seperate from the top directors and actors for the recommendation logic in the tmdb_api class. i chose to do this to avoid unessisary if else, for the genre_id and people_id methods in the tmdb_api.py.
+        people = {}
+
+        for node, count in frequency.items():
+            if count >= top_nodes:
+                if node.startswith("Genre"):
+                    genres[node] = count
+                elif node.startswith(("Director:", "Actor:")):
+                    people[node] = count
+
+        return genres, people
+
 if __name__ == "__main__":
     recommend = Recommendation(Graph(), FilmDB("cinefiles"))
     graph = recommend.build()
     print(graph.adjacency)
+
+    genres, people = recommend.dfs("Movie:Inception")
+    print(genres)
+    print(people)
