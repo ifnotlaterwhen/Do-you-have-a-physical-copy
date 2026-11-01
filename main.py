@@ -323,17 +323,28 @@ def add_film_to_library(watched= True):
 # ===================================================================
 
 def view_subscription():
-  
     print("\n--- Your Streaming Subscriptions ---")
 
-    if not user_subscriptions:
+    try:
+        response = requests.get(
+            f"{base_url}/api/subscriptions",
+            timeout=10
+        )
+        response.raise_for_status()
+        subscriptions = response.json().get("data", [])
+
+    except (requests.RequestException, ValueError) as error:
+        print(f"Unable to load subscriptions: {error}")
+        return
+
+    if not subscriptions:
         print("You have no active subscriptions.")
     else:
-        for number, subscription in enumerate(user_subscriptions, start=1):
-            print(f"{number}. {subscription}")
+        for number, subscription in enumerate(subscriptions, start=1):
+            print(f"{number}. {subscription['service']}")
 
     choice = input(
-        "\nPress 1 to manage subscriptions or 2 to return to the main menu: "
+        "\nPress 1 to manage subscriptions or 2 to return: "
     )
 
     if choice == "1":
@@ -342,15 +353,35 @@ def view_subscription():
         return
     else:
         print("Invalid choice. Returning to the main menu.")
+  
  
 
 def adjust_subscription():
-  
     while True:
         print("\n--- Manage Subscriptions ---")
 
+        try:
+            response = requests.get(
+                f"{base_url}/api/subscriptions",
+                timeout=10
+            )
+            response.raise_for_status()
+            subscriptions = response.json().get("data", [])
+
+            active_services = {
+                sub["service"] for sub in subscriptions
+            }
+
+        except (requests.RequestException, ValueError, KeyError) as error:
+            print(f"Unable to load subscriptions: {error}")
+            return
+
         for number, service in enumerate(available_subscriptions, start=1):
-            status = "Subscribed" if service in user_subscriptions else "Not subscribed"
+            status = (
+                "Subscribed"
+                if service in active_services
+                else "Not subscribed"
+            )
             print(f"{number}. {service} - {status}")
 
         print("0. Return to main menu")
@@ -366,12 +397,27 @@ def adjust_subscription():
 
         service = available_subscriptions[int(choice) - 1]
 
-        if service in user_subscriptions:
-            user_subscriptions.remove(service)
-            print(f"{service} removed from your subscriptions.")
-        else:
-            user_subscriptions.append(service)
-            print(f"{service} added to your subscriptions.")
+        try:
+            if service in active_services:
+                response = requests.delete(
+                    f"{base_url}/api/subscriptions",
+                    json={"service": service},
+                    timeout=10
+                )
+                response.raise_for_status()
+                print(f"{service} removed successfully.")
+            else:
+                response = requests.post(
+                    f"{base_url}/api/subscriptions",
+                    json={"service": service},
+                    timeout=10
+                )
+                response.raise_for_status()
+                print(f"{service} added successfully.")
+
+        except requests.RequestException as error:
+            print(f"Unable to update subscription: {error}")
+
   
 
 if __name__ == "__main__":
