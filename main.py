@@ -143,8 +143,7 @@ def how_watch():
 
     return streaming.json()
 
-if __name__ == "__main__":
-    how_watch()
+
 
 
 # ===================================================================
@@ -228,32 +227,32 @@ def log_physical():
 
     # # Find film ID:
 
-    url_search = (f"{base_url}/api/all/search")
-    response = requests.get(url_search, json=data)
+    # url_search = (f"{base_url}/api/all/search")
+    # response = requests.get(url_search, json=data)
 
-    if response.status_code == 200:
-        film_search = response.json()
-        my_film_id = film_search["my_film_id"]
-    else:
-        print(f'\n** Error: {response.json()["error"]} **')
-        return  # Need something for menu stuff here?
+    # if response.status_code == 200:
+    #     film_search = response.json()
+    #     my_film_id = film_search["my_film_id"]
+    # else:
+    #     print(f'\n** Error: {response.json()["error"]} **')
+    #     return  # Need something for menu stuff here?
 
-    # Update physical format info:
+    # # Update physical format info:
 
-    url_id = (f"{base_url}/api/all/{my_film_id}")
-    response = requests.patch(url_id, json=data)
+    # url_id = (f"{base_url}/api/all/{my_film_id}")
+    # response = requests.patch(url_id, json=data)
 
-    if response.status_code == 200:
-        print("\nYour physical copy has been stored to your library")
-        return  # Need something for menu stuff here?
-    else:
-        print(f'\nSorry there was an error: {response.json()["error"]}')
-        return  # Need something for menu stuff here?
+    # if response.status_code == 200:
+    #     print("\nYour physical copy has been stored to your library")
+    #     return  # Need something for menu stuff here?                          
+    # else:
+    #     print(f'\nSorry there was an error: {response.json()["error"]}')
+    #     return  # Need something for menu stuff here?
 
-    # except requests.exceptions.RequestException: # Error for Flask communication not happening
-        print("\nSorry, there was an issue. Make sure app.py is running and then run main.py again\n")
-        return True
-        # ask if go back to main menu or exit? or just exit for them??
+    # # except requests.exceptions.RequestException: # Error for Flask communication not happening
+    #     print("\nSorry, there was an issue. Make sure app.py is running and then run main.py again\n")
+    #     return True
+    #     # ask if go back to main menu or exit? or just exit for them??
 
 # ===================================================================
 #                         ADD WATCHED FILM
@@ -278,15 +277,15 @@ def add_films():
     
     print(f"\n'{film_title}' has been added to your watched films.")
         
-    owns_copy = input("Do you own a physical copy of the film?\n y/n? ").lower()      # can we remove the call for Add Physical logic from your function? makes the logic a bit more funky for me using yours to check a title is on the DB. They can just add a physical copy easily from the main menu as needed - RB
-    if owns_copy == 'y':
-       log_physical()
+    # owns_copy = input("Do you own a physical copy of the film?\n y/n? ").lower()      # can we remove the call for Add Physical logic from your function? makes the logic a bit more funky for me using yours to check a title is on the DB. They can just add a physical copy easily from the main menu as needed - RB
+    # if owns_copy == 'y':
+    #    log_physical()
 
-    elif owns_copy == "n":
-        print("No worries, your film has been saved without a physical copy.")
+    # elif owns_copy == "n":
+    #     print("No worries, your film has been saved without a physical copy.")
     
-    else:
-        print("Please enter y or n")
+    # else:
+    #     print("Please enter y or n")
 
 def add_film_to_library(watched= True):
 
