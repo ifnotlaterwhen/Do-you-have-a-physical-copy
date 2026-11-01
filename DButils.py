@@ -314,53 +314,29 @@ class FilmDB:
 #                         ADD PHYSICAL COPY
 # ===================================================================
 
-        def add_physical_copy(self, title, physical_format):
-            with self.db_manager.get_connection() as db:
-                with db.cursor() as cur:
-                    cur.execute(f"USE {self.db_name}")
+    def add_physical_copy(self, title, physical_format):            # indentation issued so wasn't being recognised as its own method to use in app.py, moved it back out - RB
+        with self.db_manager.get_connection() as db:
+            with db.cursor() as cur:
+                cur.execute(f"USE {self.db_name}")
 
-                    allowed_types = {
-                        "dvd_owned",
-                        "bluray_owned",
-                        "4k_bluray_owned"
-                    }
+                allowed_types = {
+                    "dvd_owned",
+                    "bluray_owned",
+                    "4k_bluray_owned"
+                }
 
-                    if physical_format not in allowed_types:
-                        raise ValueError("Invalid physical format")
+                if physical_format not in allowed_types:
+                    raise ValueError("Invalid physical format")
 
-                    cur.execute(f"""
-                        UPDATE my_films AS mf
-                        JOIN film_info AS fi
-                            on mf.my_film_id = fi.my_film_id
-                        SET mf.`{physical_format}` = TRUE
-                        WHERE fi.title = %s
-                    """, (title,))
+                cur.execute(f"""
+                    UPDATE my_films AS mf
+                    JOIN film_info AS fi
+                        on mf.my_film_id = fi.my_film_id
+                    SET mf.`{physical_format}` = TRUE
+                    WHERE fi.title = %s
+                """, (title,))
 
             db.commit()
-
-    # def add_physical_copy(self, film_id, copy_type):
-    #     with self.db_manager.get_connection() as db:
-    #         with db.cursor() as cur:
-    #             cur.execute(f"USE {self.db_name}")
-
-    #             copy_types = {
-    #                 "dvd": "dvd_owned",
-    #                 "bluray": "bluray_owned",
-    #                 "4k": "4k_bluray_owned"
-    #             }
-
-    #             if copy_type not in copy_types:
-    #                 raise ValueError("Invalid copy type")
-
-    #             column = copy_types[copy_type]
-
-    #             cur.execute(f"""
-    #                 UPDATE my_films
-    #                 SET `{column}` = TRUE
-    #                 WHERE my_film_id = %s
-    #             """, (film_id,))
-
-    #         db.commit()
 
 # ===================================================================
 #                         ADD WATCHED FILM
