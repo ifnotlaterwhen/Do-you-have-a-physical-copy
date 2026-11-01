@@ -265,24 +265,25 @@ def log_physical():
 
 #Stéphanie
 def add_films(): 
+    global current_film
 
-    film_title = input("What film would you like to add to the library?")
-    if not film_title:
-        print("Please enrer a film title.")
+    current_film = input("What film would you like to add to the library?")
+    if not current_film:
+        print("Please enter a film title.")
+        return None
         
         
-    added_title = add_film_to_library(watched = True)
+    added_title = add_film_to_library(current_film, watched = True)
 
     if added_title is None:
         print("\nGoing back to the Main Menu\n")
         return None
     
-    print(f"\n'{film_title}' has been added to your watched films.")
+    print(f"\n'{current_film}' has been added to your tracked films.")
         
 
 
 def add_film_to_library(film_title, watched= True):
-    global current_film 
 
     film_data = {"title": film_title, "watched": watched}
     
@@ -297,7 +298,6 @@ def add_film_to_library(film_title, watched= True):
         print(f"Sorry there seems to be an error {response.json()['error']}")
         return None 
     
-    current_film = film_title 
     return film_title                        
 
  

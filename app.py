@@ -137,7 +137,7 @@ def add_watched_films():
         film = search_tmdb(title)
 
     except requests.exceptions.RequestException:
-        return jsonify({"error": "Couldn't reach TMDB"}), 400
+        return jsonify({"error": "Couldn't reach TMDB"}), 502
     
     if not film:
         return jsonify({"error": f"{title} not found in TMDB"}), 404

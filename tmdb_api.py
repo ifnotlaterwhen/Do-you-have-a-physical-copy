@@ -1,7 +1,9 @@
+from __future__ import annotations
 import requests
 from dotenv import load_dotenv
 from TMDB_endpoints import genre_id, person_id
 load_dotenv()
+
 
 class TMDB_api:
     def __init__(self, api_url, api_key):

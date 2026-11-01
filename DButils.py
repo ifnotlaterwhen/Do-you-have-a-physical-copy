@@ -393,7 +393,7 @@ class SQL_query:
 
             db.commit()
 
-    def new_watched_film(self, title):
+    def new_watched_film(self, title, tmdb_id, overview=None):
         with self.db_manager.get_connection() as db:
             with db.cursor() as cur:
                 cur.execute(f"USE {self.db_name}")
@@ -402,8 +402,8 @@ class SQL_query:
                 my_film_id = cur.lastrowid    
         
                 cur.execute(
-                    "INSERT INTO film_info (my_film_id, title) VALUES (%s, %s)",
-                    (my_film_id, title),
+                    "INSERT INTO film_info (my_film_id, api_film_TMDB_id,title, overview) VALUES (%s, %s, %s, %s)",
+                    (my_film_id, tmdb_id, title, overview),
                 )
             
             db.commit()
