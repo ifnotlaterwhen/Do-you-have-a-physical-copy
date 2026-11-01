@@ -3,6 +3,15 @@ from pprint import pprint
 from app import how_to_watch
 from tabulate import tabulate
 
+available_subscriptions = [
+    "Netflix",
+    "Disney+",
+    "Amazon Prime Video",
+    "Apple TV+",
+    "NOW"
+]
+
+user_subscriptions = []
 class ValueTooLow(Exception):
     pass
 class ValueTooHigh(Exception):
@@ -314,17 +323,56 @@ def add_film_to_library(watched= True):
 # ===================================================================
 
 def view_subscription():
-    # queries the DB to show a list of subscribed services
-    # press 1 to adjust subscriptions, 2 to go back to main menu (break)
-    # calling adjust_subscription is optional
-    pass
+  
+    print("\n--- Your Streaming Subscriptions ---")
+
+    if not user_subscriptions:
+        print("You have no active subscriptions.")
+    else:
+        for number, subscription in enumerate(user_subscriptions, start=1):
+            print(f"{number}. {subscription}")
+
+    choice = input(
+        "\nPress 1 to manage subscriptions or 2 to return to the main menu: "
+    )
+
+    if choice == "1":
+        adjust_subscription()
+    elif choice == "2":
+        return
+    else:
+        print("Invalid choice. Returning to the main menu.")
+ 
 
 def adjust_subscription():
-    # display a full list of avaliable subscriptions numbered (regardless of whether the user is subscribed to it)
-    # select a number for the one you want to update
-    # 1. allows users to add the subscription
-    # 2. remove a subscrfiption from the list.
-   pass
+  
+    while True:
+        print("\n--- Manage Subscriptions ---")
+
+        for number, service in enumerate(available_subscriptions, start=1):
+            status = "Subscribed" if service in user_subscriptions else "Not subscribed"
+            print(f"{number}. {service} - {status}")
+
+        print("0. Return to main menu")
+
+        choice = input("Choose a subscription number: ")
+
+        if choice == "0":
+            return
+
+        if not choice.isdigit() or not 1 <= int(choice) <= len(available_subscriptions):
+            print("Invalid selection. Please try again.")
+            continue
+
+        service = available_subscriptions[int(choice) - 1]
+
+        if service in user_subscriptions:
+            user_subscriptions.remove(service)
+            print(f"{service} removed from your subscriptions.")
+        else:
+            user_subscriptions.append(service)
+            print(f"{service} added to your subscriptions.")
+  
 
 if __name__ == "__main__":
     run()
