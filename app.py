@@ -45,6 +45,7 @@ def get_all_movies():
 # ===================================================================
 #                          HOW TO WATCH
 # ===================================================================
+
 @app.route("/api/how-to-watch/<movie>")
 def how_to_watch(movie: str):
     stream_info = TMDB_api("https://api.themoviedb.org/3", API_KEY) #<- should this line of code be outside the function?
@@ -93,6 +94,15 @@ def update_physical():
 # ===================================================================
 #                         ADD WATCHED FILM
 # ===================================================================
+
+def search_tmdb(title):
+    search = requests.get (f"{TMDB_BASE}/search/movie", params={"query": title, "api_key": API_KEY}, timeout=10)
+    search.raise_for_status()
+    results = search.json().get("results", [])
+    if not results:
+        return None
+    return results[0]
+
 TMDB_BASE = "https://api.themoviedb.org/3"
 
 @app.route("/api/all/film_info")
@@ -124,17 +134,32 @@ def add_watched_films():
         return jsonify({"error": "Film title is required"}), 400
     
     try:
-        existing_titles = [row[0].lower() for row in dbutils.fetch_all_movies()]
-        if title.lower() in existing_titles:
-             return jsonify({"error": f"{title} is already in your library"}), 409
+        film = search_tmdb(title)
 
-        sql_query.new_watched_film(title)
+    except requests.exceptions.RequestException:
+        return jsonify({"error": "Couldn't reach TMDB"}), 400
+    
+    if not film:
+        return jsonify({"error": f"{title} not found in TMDB"}), 404
+
+    official_title = film["title"]
+
+    try:
+        existing_titles = [row[0].lower() for row in dbutils.fetch_all_movies()]
+        if official_title.lower() in existing_titles:
+             return jsonify({"error": f"{official_title} is already in your library"}), 409
+
+        sql_query.new_watched_film(
+            official_title, 
+            film["id"], 
+            film.get("overview", None)
+            )
 
     except mysql.connector.Error:
            return jsonify ({"error": "There seems to be an error with the database."}), 500
     
-    return jsonify ({"title": title, "watched": True}), 200
-     
+    return jsonify ({"title": official_title, "watched": True}), 200
+    
 
 
 
