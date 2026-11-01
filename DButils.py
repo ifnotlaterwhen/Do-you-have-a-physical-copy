@@ -382,6 +382,48 @@ class FilmDB:
 #                         SUBSCRIPTIONS
 # ===================================================================
 
+   
+    def add_subscription(self, service):
+        with self.db_manager.get_connection() as db:
+            with db.cursor() as cur:
+                cur.execute(f"USE {self.db_name}")
+
+                cur.execute("""
+                    SELECT subscription_id
+                    FROM subscriptions
+                    WHERE service = %s
+                """, (service,))
+
+                existing = cur.fetchone()
+
+                if existing:
+                    cur.execute("""
+                        UPDATE subscriptions
+                        SET active = TRUE
+                        WHERE service = %s
+                    """, (service,))
+                else:
+                    cur.execute("""
+                        INSERT INTO subscriptions (service, active)
+                        VALUES (%s, TRUE)
+                    """, (service,))
+
+            db.commit()
+
+
+    def remove_subscription(self, service):
+        with self.db_manager.get_connection() as db:
+            with db.cursor() as cur:
+                cur.execute(f"USE {self.db_name}")
+
+                cur.execute("""
+                    UPDATE subscriptions
+                    SET active = FALSE
+                    WHERE service = %s
+                """, (service,))
+
+            db.commit()
+
     def fetch_active_subs(self):
         with self.db_manager.get_connection() as db:
             with db.cursor(dictionary=True) as cur:
