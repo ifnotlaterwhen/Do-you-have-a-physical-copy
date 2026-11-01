@@ -278,7 +278,8 @@ def add_films():
     if added_title is None:
         print("\nGoing back to the Main Menu\n")
         return None
-    
+
+    current_film = added_title
     print(f"\n'{current_film}' has been added to your tracked films.")
         
 
