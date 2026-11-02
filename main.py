@@ -143,7 +143,8 @@ def how_watch():
 
     return streaming.json()
 
-
+# if __name__ == "__main__":
+#     how_watch()
 
 
 # ===================================================================
@@ -328,3 +329,4 @@ def adjust_subscription():
 
 if __name__ == "__main__":
     run()
+    how_watch()

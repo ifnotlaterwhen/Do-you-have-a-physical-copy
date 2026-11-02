@@ -15,7 +15,5 @@ class Graph():
         self.adjacency[to_node].add(from_node)
 
 
-    def graph_connection(self):
-        return self.adjacency
 
 
