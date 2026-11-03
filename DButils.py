@@ -226,6 +226,41 @@ class FilmDB:
                 return cur.fetchone()
                 #logic to get info of one single movie
 
+
+# ===================================================================
+#                         ADD WATCHED FILM
+# ===================================================================
+
+    def add_watched_film(self, film_id):
+        with self.db_manager.get_connection() as db:
+            with db.cursor() as cur:
+                cur.execute(f"USE {self.db_name}")
+
+                cur.execute("""
+                    UPDATE my_films
+                    SET watched = TRUE
+                    WHERE my_film_id = %s
+                """, (film_id,))
+
+            db.commit()
+
+    def new_watched_film(self, title, tmdb_id, overview=None):
+        with self.db_manager.get_connection() as db:
+            with db.cursor() as cur:
+                cur.execute(f"USE {self.db_name}")
+
+                cur.execute("INSERT INTO my_films (watched) VALUES (%s)", (True,))
+                my_film_id = cur.lastrowid    
+        
+                cur.execute(
+                    "INSERT INTO film_info (my_film_id, api_film_TMDB_id,title, overview) VALUES (%s, %s, %s, %s)",
+                    (my_film_id, tmdb_id, title, overview),
+                )
+            
+            db.commit()
+                
+               
+
 # ===================================================================
 #                        SEE WATCHED FILMS
 # ===================================================================
@@ -376,40 +411,6 @@ class SQL_query:
 
     #         db.commit()
 
-# ===================================================================
-#                         ADD WATCHED FILM
-# ===================================================================
-
-    def add_watched_film(self, film_id):
-        with self.db_manager.get_connection() as db:
-            with db.cursor() as cur:
-                cur.execute(f"USE {self.db_name}")
-
-                cur.execute("""
-                    UPDATE my_films
-                    SET watched = TRUE
-                    WHERE my_film_id = %s
-                """, (film_id,))
-
-            db.commit()
-
-    def new_watched_film(self, title, tmdb_id, overview=None):
-        with self.db_manager.get_connection() as db:
-            with db.cursor() as cur:
-                cur.execute(f"USE {self.db_name}")
-
-                cur.execute("INSERT INTO my_films (watched) VALUES (%s)", (True,))
-                my_film_id = cur.lastrowid    
-        
-                cur.execute(
-                    "INSERT INTO film_info (my_film_id, api_film_TMDB_id,title, overview) VALUES (%s, %s, %s, %s)",
-                    (my_film_id, tmdb_id, title, overview),
-                )
-            
-            db.commit()
-                
-
-    
 
 # ===================================================================
 #                         SUBSCRIPTIONS

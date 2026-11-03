@@ -4,7 +4,7 @@ import mysql.connector
 import pytest
 import requests
 
-with patch("DButils.FilmDB"), patch("DButils.SQL_query"), patch("config.DB_manager"):
+with patch("DButils.FilmDB"), patch("config.DB_manager"):
     from app import app, search_tmdb
 
 @pytest.fixture
@@ -19,10 +19,9 @@ def test_missing_title_returns_400(client):
     assert response.status_code == 400
 
 
-@patch("app.sql_query")
 @patch("app.dbutils")
 @patch("app.search_tmdb")
-def test_new_film_is_saved(mock_search, mock_dbutils, mock_sql, client):
+def test_new_film_is_saved(mock_search, mock_dbutils, client):
     mock_search.return_value = {"id": 77, "title": "Memento", "overview": "Plot"}
     mock_dbutils.fetch_all_movies.return_value = [("Inception",)]
 
@@ -30,20 +29,19 @@ def test_new_film_is_saved(mock_search, mock_dbutils, mock_sql, client):
 
     assert response.status_code == 200
     assert response.get_json() == {"title": "Memento", "watched": True}
-    mock_sql.new_watched_film.assert_called_once_with("Memento", 77, "Plot")
+    mock_dbutils.new_watched_film.assert_called_once_with("Memento", 77, "Plot")
 
 
-@patch("app.sql_query")
 @patch("app.dbutils")
 @patch("app.search_tmdb")
-def test_duplicate_returns_409(mock_search, mock_dbutils, mock_sql, client):
+def test_duplicate_returns_409(mock_search, mock_dbutils, client):
     mock_search.return_value = {"id": 27205, "title": "Inception", "overview": "x"}
     mock_dbutils.fetch_all_movies.return_value = [("Inception",)]
 
     response = client.post("/api/all/watched_film", json={"title": "incepton"})
 
     assert response.status_code == 409
-    mock_sql.new_watched_film.assert_not_called()
+    mock_dbutils.new_watched_film.assert_not_called()
 
 
 @patch("app.search_tmdb")
@@ -60,13 +58,12 @@ def test_tmdb_down_returns_502(mock_search, client):
     assert response.status_code == 502
 
 
-@patch("app.sql_query")
 @patch("app.dbutils")
 @patch("app.search_tmdb")
-def test_database_error_returns_500(mock_search, mock_dbutils, mock_sql, client):
+def test_database_error_returns_500(mock_search, mock_dbutils, client):
     mock_search.return_value = {"id": 77, "title": "Memento", "overview": "x"}
     mock_dbutils.fetch_all_movies.return_value = []
-    mock_sql.new_watched_film.side_effect = mysql.connector.Error("db down")
+    mock_dbutils.new_watched_film.side_effect = mysql.connector.Error("db down")
 
     response = client.post("/api/all/watched_film", json={"title": "Memento"})
 

@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from DButils import FilmDB,SQL_query
+from DButils import FilmDB
 from config import DB_manager
 from tmdb_api import TMDB_api
 import os
@@ -14,7 +14,7 @@ import mysql.connector
 app = Flask(__name__)
 
 dbutils = FilmDB("cinefiles")      # creates instance of FilmDB class - RB
-sql_query = SQL_query(DB_manager())     # added now that add_physical_copy in class SQL_query - RB
+# sql_query = SQL_query(DB_manager())     # added now that add_physical_copy in class SQL_query - RB
 
 # ===================================================================
 #                           SEE OVERVIEW
@@ -149,7 +149,7 @@ def add_watched_films():
         if official_title.lower() in existing_titles:
              return jsonify({"error": f"{official_title} is already in your library"}), 409
 
-        sql_query.new_watched_film(
+        dbutils.new_watched_film(
             official_title, 
             film["id"], 
             film.get("overview", None)

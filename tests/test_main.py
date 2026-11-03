@@ -47,7 +47,7 @@ def test_add_films_success_sets_current_film(mock_input, mock_add, capsys):
     add_films()
 
     mock_add.assert_called_once_with("memento", watched=True)
-    assert "has been added to your watched films" in capsys.readouterr().out
+    assert "has been added to your tracked films" in capsys.readouterr().out
 
 
 @patch("main.add_film_to_library", return_value=None)
@@ -65,4 +65,12 @@ def test_add_films_success_sets_current_film(mock_input, mock_add, capsys):
     add_films()
 
     mock_add.assert_called_once_with("memento", watched=True)
-    assert "has been added to your watched films" in capsys.readouterr().out
+    assert "has been added to your tracked films" in capsys.readouterr().out
+
+@patch("main.add_film_to_library")
+@patch("builtins.input", return_value="")
+def test_add_films_empty_title_is_not_posted(mock_input, mock_add, capsys):
+    add_films()
+
+    assert "Please enter a film title" in capsys.readouterr().out
+    mock_add.assert_not_called()
