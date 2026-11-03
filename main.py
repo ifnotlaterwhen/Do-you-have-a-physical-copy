@@ -237,8 +237,10 @@ def add_films(return_message = True):
         print("Please enter a film title.")
         return None
         
-        
-    added_title = add_film_to_library(current_film, watched = True, show_error=return_message)
+    if return_message:
+        added_title = add_film_to_library(current_film,watched=True)
+    else:
+        added_title = add_film_to_library(current_film,watched=True,show_error=False)
 
     if added_title is None:
         if return_message:
