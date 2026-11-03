@@ -124,7 +124,7 @@ def how_watch():
     # they should be able to call this function too?
     # need to also note if any physical copy, and what format(s)
 
-    movie_title = input("What movie whould you like to know where to stream?")
+    movie_title = input("What movie whould you like to know where to stream? ")
     if not movie_title:
         print("Please type the name of the movie")
         return None
@@ -321,3 +321,4 @@ def adjust_subscription():
 
 if __name__ == "__main__":
     run()
+    how_watch()
