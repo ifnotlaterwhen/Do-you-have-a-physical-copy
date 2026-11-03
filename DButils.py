@@ -319,6 +319,7 @@ class FilmDB:
             with db.cursor() as cur:
                 cur.execute(f"USE {self.db_name}")
 
+
                 allowed_types = {
                     "dvd_owned",
                     "bluray_owned",
@@ -338,7 +339,25 @@ class FilmDB:
 
             db.commit()
 
-# ===================================================================
+    def fetch_owned_copy(self, movie):
+        with self.db_manager.get_connection() as db:
+            with db.cursor() as cur:
+                cur.execute(f"USE {self.db_name}")
+                cur.execute("""
+                    SELECT
+                        CASE
+                            WHEN my_films.dvd_owned = TRUE THEN 'DVD'
+                            WHEN my_films.bluray_owned = TRUE THEN 'bluray'
+                            WHEN my_films.`4k_bluray_owned` = TRUE THEN '4k_bluray'
+                        END AS owned_copy
+                    FROM my_films
+                    JOIN film_info
+                        ON my_films.my_film_id = film_info.my_film_id
+                    WHERE film_info.title = %s
+                """, (movie,))
+                return cur.fetchone()
+
+    # ===================================================================
 #                         ADD WATCHED FILM
 # ===================================================================
 
@@ -367,7 +386,29 @@ class FilmDB:
                 FROM subscriptions
                 WHERE active = TRUE""")
                 return cur.fetchall()
-              
+
+    def physical_copy(self, movie):
+        with self.db_manager.get_connection() as db:
+            with db.cursor() as cur:
+                cur.execute(f"USE {self.db_name}")
+                cur.execute("""
+                select
+                case
+                    when dvd_owned = True then 'dvd_owned'
+                    when bluray_owned = True then 'bluray_owned'
+                    when 4k_bluray_owned = True then '4k_bluray_owned'
+                end as owned_copy
+                from my_films
+                left join film_info
+                on my_films.my_film_id = film_info.my_film_id
+                where title = %s
+                and (dvd_owned = True
+                     or bluray_owned = True
+                     or 4k_bluray_owned = True)
+                """, (movie,))
+                return cur.fetchone()
+
+
 # Run commands
 
 def run():

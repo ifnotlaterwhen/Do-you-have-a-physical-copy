@@ -10,11 +10,10 @@ class Graph():
         self.adjacency[node]
 
 
-    def connections(self, node1, node2):
-        self.adjacency[node1].add(node2)
+    def connections(self, from_node, to_node):
+        self.adjacency[from_node].add(to_node)
+        self.adjacency[to_node].add(from_node)
 
 
-    def graph_connection(self):
-        return self.adjacency
 
 

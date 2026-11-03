@@ -45,7 +45,7 @@ def get_all_movies():
 #                          HOW TO WATCH
 # ===================================================================
 @app.route("/api/how-to-watch/<movie>")
-def how_to_watch(movie: str):
+def how_to_watch(movie):
     stream_info = TMDB_api("https://api.themoviedb.org/3", API_KEY) #<- should this line of code be outside the function?
     stream = stream_info.find_movie_subscription(movie)
     if stream is None:
@@ -55,8 +55,10 @@ def how_to_watch(movie: str):
 
 @app.route("/api/owned-physical/<movie>", methods=["GET"])
 def physical_copy(movie):
-    physical = FilmDB(DB_manager())
-    result = physical.owned_copies(movie)       # Error on "owned_copies". Should this be pulling from "fetch_physical_copies" or "fetch_owned_copy" in DButils? - RB
+
+    physical = FilmDB("cinefiles")
+    result = physical.fetch_owned_copy(movie)
+
     return jsonify(result)
 # ===================================================================
 #                         ADD PHYSICAL COPY
