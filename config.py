@@ -14,7 +14,7 @@ class DB_manager:
             "port" : os.getenv("DB_PORT"),
             "user" : os.getenv("DB_USER"),
             "password" : os.getenv("DB_PW"),
-            "database" : os.getenv("DB_NAME", "cinefiles")
+            
         }
         self.connection = None
 

@@ -3,7 +3,7 @@ from collections import  defaultdict
 
 
 class GraphBuild:
-    def __init__(self, graph,db):
+    def __init__(self, graph, db):
         self.graph = graph
         self.db = db
 
