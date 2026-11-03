@@ -48,10 +48,10 @@ def run():
 def menu():
     print("""
 [1] Cinefiles DB
-[2] Film recommandations 
+[2] Film recommendations 
 [3] Find where to watch
 [4] Add physical copy
-[5] Add watched film
+[5] Track a film
 [6] Subscriptions
 [7] Exit\n""")
 
@@ -68,7 +68,7 @@ def menu():
             return choice
         
         except ValueError:
-            print("Please enter a valid number")
+            print("\nPlease enter a valid number\n")
         # else:
         #     print("Pease enter a number on the menu (1-7)")
         except ValueTooLow:
@@ -152,11 +152,6 @@ def how_watch():
 
 #Reid
 
-# When the user enters a film, check if it exists. If not, film added to DB before the logic proceeds       # part of add_films?
-# Updates the relevant value of dvd_owned/bluray_owned/4k_bluray_owned to True in DB
-
-# below is on the basis that the film already exists in the database.
-
 def physical_menu():
     print("""
 [1] DVD
@@ -174,7 +169,7 @@ def physical_menu():
                 raise ValueTooHigh
             return choice
         except ValueError:
-            print("Please enter a valid number")
+            print("\nPlease enter a valid number\n")
         except ValueTooLow:
             print("\nNumber too low. Pease enter a number on the menu (1-5)\n")
         except ValueTooHigh:
@@ -197,7 +192,11 @@ def physical_options():
 
 def log_physical():
     
-    # call whichever adding film function from Stéphanie, which should also update univeral current_film variable - RB
+    global current_film
+
+    add_films(return_message = False)
+    if not current_film:
+        return None
 
     physical_format = physical_options()
 
@@ -225,58 +224,25 @@ def log_physical():
         print("\nSorry, there was an issue. Make sure app.py is running and then run main.py again\n")
         return
 
-    # # Find film ID:
-
-    # url_search = (f"{base_url}/api/all/search")
-    # response = requests.get(url_search, json=data)
-
-    # if response.status_code == 200:
-    #     film_search = response.json()
-    #     my_film_id = film_search["my_film_id"]
-    # else:
-    #     print(f'\n** Error: {response.json()["error"]} **')
-    #     return  # Need something for menu stuff here?
-
-    # # Update physical format info:
-
-    # url_id = (f"{base_url}/api/all/{my_film_id}")
-    # response = requests.patch(url_id, json=data)
-
-    # if response.status_code == 200:
-    #     print("\nYour physical copy has been stored to your library")
-    #     return  # Need something for menu stuff here?                          
-    # else:
-    #     print(f'\nSorry there was an error: {response.json()["error"]}')
-    #     return  # Need something for menu stuff here?
-
-    # # except requests.exceptions.RequestException: # Error for Flask communication not happening
-    #     print("\nSorry, there was an issue. Make sure app.py is running and then run main.py again\n")
-    #     return True
-    #     # ask if go back to main menu or exit? or just exit for them??
-
 # ===================================================================
 #                         ADD WATCHED FILM
 # ===================================================================
 
-# Can I check your logic will handle the below please - RB
-#   - Checks for an existing film before inserting. 
-#   - Adds a new film to the DB if necessary (which gets the TMDB API to give you relevant metadata needed to populate the DB).
-#   - Returns the film title to current_film global variable.
-
 #Stéphanie
-def add_films(): 
+def add_films(return_message = True): 
     global current_film
 
-    current_film = input("What film would you like to add to the library?")
+    current_film = input("\nWhat film would you like to add to the library? ")
     if not current_film:
         print("Please enter a film title.")
         return None
         
         
-    added_title = add_film_to_library(current_film, watched = True)
+    added_title = add_film_to_library(current_film, watched = True, show_error=return_message)
 
     if added_title is None:
-        print("\nGoing back to the Main Menu\n")
+        if return_message:
+            print("\nGoing back to the Main Menu\n")
         return None
 
     current_film = added_title
@@ -284,7 +250,7 @@ def add_films():
         
 
 
-def add_film_to_library(film_title, watched= True):
+def add_film_to_library(film_title, watched= True, show_error = True):
 
     film_data = {"title": film_title, "watched": watched}
     
@@ -296,7 +262,8 @@ def add_film_to_library(film_title, watched= True):
         return None 
 
     if response.status_code not in (200, 201):
-        print(f"Sorry there seems to be an error {response.json()['error']}")
+        if show_error:    
+            print(f"Sorry there seems to be an error {response.json()['error']}")
         return None 
     
     return film_title                        
@@ -321,4 +288,4 @@ def adjust_subscription():
 
 if __name__ == "__main__":
     run()
-    how_watch()
+    #how_watch()    # don't think should be called here, messes up the user flow
