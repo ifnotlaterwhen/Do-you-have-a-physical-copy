@@ -211,7 +211,7 @@ class FilmDB:
 
     def fetch_info_for_graph(self):
         with self.db_manager.get_connection() as db:
-            with db.cursor() as cur:
+            with db.cursor(dictionary=True) as cur:
                 cur.execute(f"USE {self.db_name}")
                 cur.execute("""SELECT fi.title, GROUP_CONCAT(DISTINCT fg.genre_name SEPARATOR ", ") AS genres, GROUP_CONCAT(DISTINCT d.name SEPARATOR ", ") AS directors,GROUP_CONCAT(DISTINCT a.name SEPARATOR ", ") AS actors
                     FROM my_films mf

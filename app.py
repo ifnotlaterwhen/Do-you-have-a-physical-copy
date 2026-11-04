@@ -1,7 +1,10 @@
 from flask import Flask, jsonify, request       # re-added request - RB
 from DButils import FilmDB
 from config import DB_manager
+from TMDB_endpoints import TMDB
 from tmdb_api import TMDB_api
+from graph import Graph
+from graph_build import GraphBuild
 import os
 import requests
 from dotenv import load_dotenv
@@ -39,8 +42,21 @@ def get_all_movies():
 # ===================================================================
 #                        GET RECOMMENDATION
 # ===================================================================
+@app.route("/get-recommendation", methods=["GET"])
+def get_recommendation():
+    api_key = TMDB_api(TMDB, API_KEY)
+    db = FilmDB("cinefiles")
+    graph = Graph()
+    graph_builder =GraphBuild(graph,db)
+    graph_builder.build()
+    watched_movies = graph_builder.movie_titles()
+    genres, people = graph_builder.dfs(graph_builder.start_node)
+    recommendation = api_key.get_recommendation(genres, people, watched_movies)
 
+    if recommendation is None:
+        return jsonify({"error": "No recommendations found"}), 404
 
+    return jsonify({"recommendations": recommendation})
 
 # ===================================================================
 #                          HOW TO WATCH
@@ -48,7 +64,7 @@ def get_all_movies():
 
 @app.route("/api/how-to-watch/<movie>")
 def how_to_watch(movie):
-    stream_info = TMDB_api("https://api.themoviedb.org/3", API_KEY) #<- should this line of code be outside the function?
+    stream_info = TMDB_api(TMDB, API_KEY)
     stream = stream_info.find_movie_subscription(movie)
     if stream is None:
 
