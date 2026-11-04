@@ -239,6 +239,41 @@ class FilmDB:
                 """, (fetch_film_id,))
                 return cur.fetchone()
 
+
+# ===================================================================
+#                         ADD WATCHED FILM
+# ===================================================================
+
+    def add_watched_film(self, film_id):
+        with self.db_manager.get_connection() as db:
+            with db.cursor() as cur:
+                cur.execute(f"USE {self.db_name}")
+
+                cur.execute("""
+                    UPDATE my_films
+                    SET watched = TRUE
+                    WHERE my_film_id = %s
+                """, (film_id,))
+
+            db.commit()
+
+    def new_watched_film(self, title, tmdb_id, overview=None):
+        with self.db_manager.get_connection() as db:
+            with db.cursor() as cur:
+                cur.execute(f"USE {self.db_name}")
+
+                cur.execute("INSERT INTO my_films (watched) VALUES (%s)", (True,))
+                my_film_id = cur.lastrowid    
+        
+                cur.execute(
+                    "INSERT INTO film_info (my_film_id, api_film_TMDB_id,title, overview) VALUES (%s, %s, %s, %s)",
+                    (my_film_id, tmdb_id, title, overview),
+                )
+            
+            db.commit()
+                
+               
+
 # ===================================================================
 #                        SEE WATCHED FILMS
 # ===================================================================
@@ -314,55 +349,50 @@ class FilmDB:
 #                         ADD PHYSICAL COPY
 # ===================================================================
 
-        def add_physical_copy(self, title, physical_format):
-            with self.db_manager.get_connection() as db:
-                with db.cursor() as cur:
-                    cur.execute(f"USE {self.db_name}")
+    def add_physical_copy(self, title, physical_format):            # indentation issued so wasn't being recognised as its own method to use in app.py, moved it back out - RB
+        with self.db_manager.get_connection() as db:
+            with db.cursor() as cur:
+                cur.execute(f"USE {self.db_name}")
 
-                    allowed_types = {
-                        "dvd_owned",
-                        "bluray_owned",
-                        "4k_bluray_owned"
-                    }
 
-                    if physical_format not in allowed_types:
-                        raise ValueError("Invalid physical format")
+                allowed_types = {
+                    "dvd_owned",
+                    "bluray_owned",
+                    "4k_bluray_owned"
+                }
 
-                    cur.execute(f"""
-                        UPDATE my_films AS mf
-                        JOIN film_info AS fi
-                            on mf.my_film_id = fi.my_film_id
-                        SET mf.`{physical_format}` = TRUE
-                        WHERE fi.title = %s
-                    """, (title,))
+                if physical_format not in allowed_types:
+                    raise ValueError("Invalid physical format")
+
+                cur.execute(f"""
+                    UPDATE my_films AS mf
+                    JOIN film_info AS fi
+                        on mf.my_film_id = fi.my_film_id
+                    SET mf.`{physical_format}` = TRUE
+                    WHERE fi.title = %s
+                """, (title,))
 
             db.commit()
 
-    # def add_physical_copy(self, film_id, copy_type):
-    #     with self.db_manager.get_connection() as db:
-    #         with db.cursor() as cur:
-    #             cur.execute(f"USE {self.db_name}")
+    def fetch_owned_copy(self, movie):
+        with self.db_manager.get_connection() as db:
+            with db.cursor() as cur:
+                cur.execute(f"USE {self.db_name}")
+                cur.execute("""
+                    SELECT
+                        CASE
+                            WHEN my_films.dvd_owned = TRUE THEN 'DVD'
+                            WHEN my_films.bluray_owned = TRUE THEN 'bluray'
+                            WHEN my_films.`4k_bluray_owned` = TRUE THEN '4k_bluray'
+                        END AS owned_copy
+                    FROM my_films
+                    JOIN film_info
+                        ON my_films.my_film_id = film_info.my_film_id
+                    WHERE film_info.title = %s
+                """, (movie,))
+                return cur.fetchone()
 
-    #             copy_types = {
-    #                 "dvd": "dvd_owned",
-    #                 "bluray": "bluray_owned",
-    #                 "4k": "4k_bluray_owned"
-    #             }
-
-    #             if copy_type not in copy_types:
-    #                 raise ValueError("Invalid copy type")
-
-    #             column = copy_types[copy_type]
-
-    #             cur.execute(f"""
-    #                 UPDATE my_films
-    #                 SET `{column}` = TRUE
-    #                 WHERE my_film_id = %s
-    #             """, (film_id,))
-
-    #         db.commit()
-
-# ===================================================================
+    # ===================================================================
 #                         ADD WATCHED FILM
 # ===================================================================
 
@@ -433,7 +463,29 @@ class FilmDB:
                 FROM subscriptions
                 WHERE active = TRUE""")
                 return cur.fetchall()
-              
+
+    def physical_copy(self, movie):
+        with self.db_manager.get_connection() as db:
+            with db.cursor() as cur:
+                cur.execute(f"USE {self.db_name}")
+                cur.execute("""
+                select
+                case
+                    when dvd_owned = True then 'dvd_owned'
+                    when bluray_owned = True then 'bluray_owned'
+                    when 4k_bluray_owned = True then '4k_bluray_owned'
+                end as owned_copy
+                from my_films
+                left join film_info
+                on my_films.my_film_id = film_info.my_film_id
+                where title = %s
+                and (dvd_owned = True
+                     or bluray_owned = True
+                     or 4k_bluray_owned = True)
+                """, (movie,))
+                return cur.fetchone()
+
+
 # Run commands
 
 def run():
