@@ -20,12 +20,13 @@ class GraphBuild:
             if self.start_node is None:
                 self.start_node = movie_node
 
-            actors = row["actors"].split(", ") if row["actors"] else []
-            directors = row["directors"].split(", ") if row["directors"] else []
-            genres = row["genres"].split(", ") if row["genres"] else []
+            actors = row["actors"].split(", ")
+            directors = row["directors"].split(", ")
+            genres = row["genres"].split(", ")
 
             actor_nodes = ["Actor:" + name for name in actors]
             director_nodes = ["Director:" + name for name in directors]
+            genre_nodes = ["Genre:" + name for name in genres]
 
             for actor_node in actor_nodes:
                 self.graph.connections(movie_node, actor_node)
@@ -37,8 +38,8 @@ class GraphBuild:
                 for director_node in director_nodes:
                     self.graph.connections(actor_node, director_node)
 
-            for genre in genres:
-                self.graph.connections(movie_node, "Genre:" + genre)
+            for genre in genre_nodes:
+                self.graph.connections(movie_node, genre)
 
         return self.graph
 
