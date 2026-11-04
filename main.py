@@ -152,8 +152,8 @@ def how_watch():
     else:
         print(f"you do not own {movie_title}. But...")
 
-    return streaming.json()
-
+    data = streaming.json()
+    print(data)
 
 
 
