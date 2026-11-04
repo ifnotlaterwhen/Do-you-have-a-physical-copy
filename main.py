@@ -1,6 +1,7 @@
 import requests
 from pprint import pprint
 from app import how_to_watch
+from app import get_recommendation
 from tabulate import tabulate
 
 class ValueTooLow(Exception):
@@ -107,10 +108,20 @@ def show_DB():
 #                        GET RECOMMENDATION
 # ===================================================================
 
-#Leave it for now
+
 def get_recommendations():
-    # should return a number of movies based on watch history 
-    pass
+    # should print a number of movies based on watch history
+    try:
+        response= requests.get(f"http://127.0.0.1:5000/get-recommendation")
+    except requests.RequestException:
+        print("sorry, there seems to be a problem")
+        return None
+    if response.status_code != 200:
+        print("sorry, could not find any recommendations")
+        return None
+    recommendations = response.json()["recommendations"]
+    print("Here are some recommendations based on your viewing preference")
+    print(recommendations)
 
 # ===================================================================
 #                          HOW TO WATCH
