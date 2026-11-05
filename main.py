@@ -79,9 +79,9 @@ def menu():
         # else:
         #     print("Pease enter a number on the menu (1-7)")
         except ValueTooLow:
-            print("\nNumber too low. Pease enter a number from the menu (1-7)\n")
+            print("\nNumber too low. Please enter a number from the menu (1-7)\n")
         except ValueTooHigh:
-            print("\nNumber too high. Pease enter a number from the menu (1-7)\n")
+            print("\nNumber too high. Please enter a number from the menu (1-7)\n")
 
 
 def return_to_menu():
