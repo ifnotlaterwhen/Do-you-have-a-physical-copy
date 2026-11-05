@@ -78,7 +78,7 @@ class TMDB_api:
 
 
             for items in results:
-                self.genre_id_cache[items["name"]] = items["id"] #<- store genres in a dictionary to avoid having to call the api everytime. then use the ids in the dict to fewtch genre id
+                self.genre_id_cache[items["name"]] = items["id"] #<- store genres in a dictionary to avoid having to call the api everytime the program is running. then use the ids in the dict to fetch genre id
 
         genre_results = []
         for genres in genre:
