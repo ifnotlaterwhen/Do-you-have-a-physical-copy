@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request       # re-added request - RB
-from DButils import FilmDB
+from DButils import FilmDB, seedDB
 from config import DB_manager
 from TMDB_endpoints import TMDB
 from tmdb_api import TMDB_api
@@ -171,7 +171,17 @@ def add_watched_films():
     return jsonify ({"title": official_title, "watched": True}), 200
     
 
-
+@app.route('/api/init')
+def new_user_init():
+    # seedDB("cinefiles").dropDB()
+    check = FilmDB('cinefiles').check_db_exists()
+    if not check:
+        init = seedDB('cinefiles')
+        init.init_db()
+        init.seed_subscriptions()
+        return jsonify({"msg": "Auto setup complete"}),200
+    else:
+        return jsonify({"msg": "Initialised"}),200
 
 
 # ===================================================================
