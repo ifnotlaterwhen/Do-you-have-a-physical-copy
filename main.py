@@ -308,4 +308,4 @@ def DB_init():
 
 if __name__ == "__main__":
     run()
-    #how_watch()    # don't think should be called here, messes up the user flow
+
