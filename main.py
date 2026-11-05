@@ -54,18 +54,18 @@ def run():
 
 def menu():
     print("""
-[1] Cinefiles DB
+[1] See tracked films
 [2] Film recommendations 
 [3] Find where to watch
 [4] Add physical copy
-[5] Track a film
+[5] Track a new film
 [6] Subscriptions
 [7] Exit\n""")
 
     # choice = 1
     while True:
         try:
-            choice = int(input("Please enter the number from the menu: "))
+            choice = int(input("Please enter a number from the menu: "))
             
             if choice < 1:
                 raise ValueTooLow
@@ -79,17 +79,19 @@ def menu():
         # else:
         #     print("Pease enter a number on the menu (1-7)")
         except ValueTooLow:
-            print("\nNumber too low. Pease enter a number on the menu (1-7)\n")
+            print("\nNumber too low. Pease enter a number from the menu (1-7)\n")
         except ValueTooHigh:
-            print("\nNumber too high. Pease enter a number on the menu (1-7)\n")
+            print("\nNumber too high. Pease enter a number from the menu (1-7)\n")
 
 
 def return_to_menu():
-    choice = input("\nBack to the main menu? (y/n): ").lower()
-    if choice != "y" and choice != "n":
-        raise ValueError("Please enter y or n:")
-    elif choice == "n":
-        return True
+    while True:
+        choice = input("\nBack to the main menu? (y/n): ").strip().lower()
+        if choice == "y":
+            return None
+        if choice == "n":
+            return True
+        print("Please enter y or n:")
 
 #Reese's note to all: 
 # the functions below should call API routes defined in app.py
@@ -103,7 +105,7 @@ def return_to_menu():
 
 def show_DB():
     all_movies = requests.get(f"{base_url}/api/overview") #See app.py for this route
-    table = tabulate(all_movies.json()["data"], headers=['Title', 'genre', 'directed by', 'starring','4k blu-ray', 'blu-ray', 'dvd'], tablefmt='markdown')
+    table = tabulate(all_movies.json()["data"], headers=['Title', 'Genre', 'Directed by', 'Starring','4k Blu-ray', 'Blu-ray', 'DVD'], tablefmt='markdown')
     # print(all_movies.json()["data"])
     print(table)
     return return_to_menu()
@@ -118,14 +120,15 @@ def get_recommendations():
     try:
         response= requests.get(f"http://127.0.0.1:5000/get-recommendation")
     except requests.RequestException:
-        print("sorry, there seems to be a problem")
+        print("Sorry, there seems to be a problem")
         return None
     if response.status_code != 200:
-        print("sorry, could not find any recommendations")
+        print("Sorry, could not find any recommendations")
         return None
     recommendations = response.json()["recommendations"]
     print("Here are some recommendations based on your viewing preference")
     print(recommendations)
+    return return_to_menu()
 
 # ===================================================================
 #                          HOW TO WATCH
@@ -139,7 +142,7 @@ def how_watch():
     # they should be able to call this function too?
     # need to also note if any physical copy, and what format(s)
 
-    movie_title = input("What movie whould you like to know where to stream? ")
+    movie_title = input("Which movie would you like to stream? ")
     if not movie_title:
         print("Please type the name of the movie")
         return None
@@ -154,10 +157,11 @@ def how_watch():
     if owned_copy:
         print(f"You have {movie_title} on {owned_copy}")
     else:
-        print(f"you do not own {movie_title}. But...")
+        print(f"You do not own {movie_title}. But...")
 
     data = streaming.json()
     print(data)
+    return return_to_menu()
 
 
 
@@ -177,7 +181,7 @@ def physical_menu():
 
     while True:
         try:
-            choice = int(input("Please enter the number from the menu: ").strip())
+            choice = int(input("Please enter a number from the menu: ").strip())
             if choice < 1:
                 raise ValueTooLow
             if choice > 5:
@@ -186,12 +190,12 @@ def physical_menu():
         except ValueError:
             print("\nPlease enter a valid number\n")
         except ValueTooLow:
-            print("\nNumber too low. Pease enter a number on the menu (1-5)\n")
+            print("\nNumber too low. Please enter a number from the menu (1-5)\n")
         except ValueTooHigh:
-            print("\nNumber too high. Pease enter a number on the menu (1-5)\n")
+            print("\nNumber too high. Please enter a number from the menu (1-5)\n")
 
 def physical_options():
-    print("\nWhich physical format do you want to add? ")
+    print("\nWhich physical format would you like to add? ")
     choice = physical_menu()
     if choice == 1:
         return "dvd_owned"
@@ -209,7 +213,7 @@ def log_physical():
     
     global current_film
 
-    add_films(return_message = False)
+    add_films(return_message = False, ask_menu=False)
     if not current_film:
         return None
 
@@ -231,23 +235,21 @@ def log_physical():
         response = requests.patch(url, json=data)
         if response.status_code == 200:
             print("\nYour physical copy has been stored in your library")
-            return
         else:
-            print(f'\nSorry there was an error: {response.json()["error"]}')
-            return
+            print(f'\nSorry, there was an error: {response.json()["error"]}')
     except requests.exceptions.RequestException:
         print("\nSorry, there was an issue. Make sure app.py is running and then run main.py again\n")
-        return
+    return return_to_menu()
 
 # ===================================================================
 #                         ADD WATCHED FILM
 # ===================================================================
 
 #Stéphanie
-def add_films(return_message = True): 
+def add_films(return_message = True, ask_menu=True): 
     global current_film
 
-    current_film = input("\nWhat film would you like to add to the library? ")
+    current_film = input("\nWhich film would you like to add to the library? ")
     if not current_film:
         print("Please enter a film title.")
         return None
@@ -260,10 +262,11 @@ def add_films(return_message = True):
     if added_title is None:
         if return_message:
             print("\nGoing back to the Main Menu\n")
-        return None
+        return return_to_menu() if ask_menu else None
 
     current_film = added_title
     print(f"\n'{current_film}' has been added to your tracked films.")
+    return return_to_menu() if ask_menu else None
         
 
 
@@ -275,12 +278,12 @@ def add_film_to_library(film_title, watched= True, show_error = True):
         response = requests.post(f"{base_url}/api/all/watched_film", json= film_data)
     
     except requests.exceptions.RequestException:
-        print("Sorry there was an issue with your post request.")
+        print("Sorry, there was an issue with your post request.")
         return None 
 
     if response.status_code not in (200, 201):
         if show_error:    
-            print(f"Sorry there seems to be an error {response.json()['error']}")
+            print(f"Sorry, there seems to be an error {response.json()['error']}")
         return None 
     
     return film_title                        
