@@ -1,2 +1,6 @@
-genre_id = "https://api.themoviedb.org/3/genre/movie/list"
-person_id = "https://api.themoviedb.org/3/search/person"
+TMDB = "https://api.themoviedb.org/3"
+
+search_movie = "/search/movie"
+genres_ids = "/genre/movie/list"
+persons_ids = "/search/person"
+discover = "/discover/movie"
