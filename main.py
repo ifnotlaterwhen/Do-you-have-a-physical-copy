@@ -14,6 +14,12 @@ current_film = ""
 
 def run():
     print("\nWelcome to Cinefiles")
+    # The new function DB_init is for initialising the DB for the USER. 
+    # It checks if cinefiles DB exists. 
+    # If it doesn't, it will create a fresh DB with no seeding data except a list of subscriptions default to inactive.
+
+    DB_init()
+
     while True:
         choice = menu()
         result = ""
@@ -78,14 +84,12 @@ def menu():
             print("\nNumber too high. Pease enter a number on the menu (1-7)\n")
 
 
-# def return_to_menu():
-#     another = input("\nWould you like to go back to the menu? y/n: ").lower()
-#     if another != "y" and another != "n":
-#         raise ValueError("Please enter y or n:")
-#     elif another == "n":
-#         return False
-#     else:
-#         return True
+def return_to_menu():
+    choice = input("\nBack to the main menu? (y/n): ").lower()
+    if choice != "y" and choice != "n":
+        raise ValueError("Please enter y or n:")
+    elif choice == "n":
+        return True
 
 #Reese's note to all: 
 # the functions below should call API routes defined in app.py
@@ -99,10 +103,10 @@ def menu():
 
 def show_DB():
     all_movies = requests.get(f"{base_url}/api/overview") #See app.py for this route
-    table = tabulate(all_movies.json()["data"], headers=['Title', 'genre', 'directed by', 'starring','4k bluray', 'blyray', 'dvd'], tablefmt='markdown')
+    table = tabulate(all_movies.json()["data"], headers=['Title', 'genre', 'directed by', 'starring','4k blu-ray', 'blu-ray', 'dvd'], tablefmt='markdown')
     # print(all_movies.json()["data"])
     print(table)
-    return True
+    return return_to_menu()
 
 # ===================================================================
 #                        GET RECOMMENDATION
@@ -297,6 +301,10 @@ def adjust_subscription():
     # 1. allows users to add the subscription
     # 2. remove a subscrfiption from the list.
    pass
+
+def DB_init():
+    check = requests.get(f"{base_url}/api/init").json()
+    print(check["msg"])
 
 if __name__ == "__main__":
     run()
