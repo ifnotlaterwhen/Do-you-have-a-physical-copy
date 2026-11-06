@@ -104,16 +104,30 @@ def update_physical():
 # ===================================================================
 #                         ADD WATCHED FILM
 # ===================================================================
+TMDB_BASE = "https://api.themoviedb.org/3"
 
 def search_tmdb(title):
-    search = requests.get (f"{TMDB_BASE}/search/movie", params={"query": title, "api_key": API_KEY}, timeout=10)
+    search = requests.get (f"{TMDB_BASE}/search/movie", params={"query": title, "api_key": API_KEY})
+
     search.raise_for_status()
     results = search.json().get("results", [])
     if not results:
         return None
-    return results[0]
 
-TMDB_BASE = "https://api.themoviedb.org/3"
+    film_id = results[0]["id"]
+    details = requests.get(f"{TMDB_BASE}/movie/{film_id}", params={"api_key": API_KEY, "append_to_response":"credits"})
+    details.raise_for_status()
+    details = details.json()
+
+    credits = details.get("credits", {})
+    return{
+        "tmdb_id": details["id"],
+        "title": details["title"],
+        "overview": details.get("overview"),
+        "genres": [g["name"] for g in details.get("genres", [])],
+        "directors": [c["name"] for c in credits.get("crew", []) if c["job"] == "Director"],
+        "actors": [c["name"] for c in credits.get("cast", [])[:3]],
+    }
 
 @app.route("/api/all/film_info")
 def get_film_info():
@@ -123,8 +137,7 @@ def get_film_info():
 
     try:
         search = requests.get(f"{TMDB_BASE}/search/movie",
-                            params={"query": title, "api_key": API_KEY},
-                            timeout=10)
+                            params={"query": title, "api_key": API_KEY})
         search.raise_for_status()
         results = search.json().get("results", [])
     except requests.exceptions.RequestException:
@@ -147,27 +160,19 @@ def add_watched_films():
         film = search_tmdb(title)
 
     except requests.exceptions.RequestException:
-        return jsonify({"error": "Couldn't reach TMDB"}), 502
+        return jsonify({"error": f"Couldn't reach TMDB for {title}"}), 502
     
     if not film:
         return jsonify({"error": f"{title} not found in TMDB"}), 404
 
-    official_title = film["title"]
+    official_title = film["title"] 
 
-    try:
-        existing_titles = [row[0].lower() for row in dbutils.fetch_all_movies()]
-        if official_title.lower() in existing_titles:
-             return jsonify({"error": f"{official_title} is already in your library"}), 409
+    existing_titles = [row[0].lower() for row in dbutils.fetch_all_movies()]
+    if official_title.lower() in existing_titles:
+            return jsonify({"error": f"{official_title} is already in your library"}), 409
 
-        dbutils.new_watched_film(
-            official_title, 
-            film["id"], 
-            film.get("overview", None)
-            )
-
-    except mysql.connector.Error:
-           return jsonify ({"error": "There seems to be an error with the database."}), 500
-    
+    dbutils.new_watched_film(film)
+         
     return jsonify ({"title": official_title, "watched": True}), 200
     
 

@@ -242,20 +242,15 @@ def log_physical():
 # ===================================================================
 #                         ADD WATCHED FILM
 # ===================================================================
-
-#Stéphanie
-def add_films(return_message = True): 
+def add_films(return_message=True):
     global current_film
 
-    current_film = input("\nWhat film would you like to add to the library? ")
-    if not current_film:
+    title = input("\nWhat film would you like to add to the library? ")
+    if not title:
         print("Please enter a film title.")
         return None
-        
-    if return_message:
-        added_title = add_film_to_library(current_film,watched=True)
-    else:
-        added_title = add_film_to_library(current_film,watched=True,show_error=False)
+
+    added_title = add_film_to_library(title, watched=True)
 
     if added_title is None:
         if return_message:
@@ -264,28 +259,28 @@ def add_films(return_message = True):
 
     current_film = added_title
     print(f"\n'{current_film}' has been added to your tracked films.")
-        
 
 
-def add_film_to_library(film_title, watched= True, show_error = True):
+def add_film_to_library(film_title, watched=True):
 
     film_data = {"title": film_title, "watched": watched}
-    
+
     try:
-        response = requests.post(f"{base_url}/api/all/watched_film", json= film_data)
-    
+        response = requests.post(f"{base_url}/api/all/watched_film", json=film_data)
+
     except requests.exceptions.RequestException:
-        print("Sorry there was an issue with your post request.")
-        return None 
+        print("Sorry, there was an issue with your post request.")
+        return None
 
     if response.status_code not in (200, 201):
-        if show_error:    
-            print(f"Sorry there seems to be an error {response.json()['error']}")
-        return None 
-    
-    return film_title                        
+            try:
+                message = response.json().get("error", "Unknown error")
+            except ValueError:
+                print(f"Sorry, there seems to be an error:(Status{response.status_code}): {response.text}")
+            return None
 
- 
+    return response.json().get("title", film_title)
+
 # ===================================================================
 #                         SUBSCRIPTIONS
 # ===================================================================
