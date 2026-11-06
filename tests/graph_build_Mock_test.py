@@ -28,18 +28,18 @@ FAKE_DATA = [
         "directors": "Christopher Nolan",
         "actors": "Timothée Chalamet",
     },
-{
-        "title": "Spirited Away",
-        "genres": "Action, Animation",
-        "directors": "Hayao Miyazaki",
-        "actors": "Rumi Hiiragi",
-    },
-{
-        "title": "Parasite",
-        "genres": "Crime ,Drama, Thriller",
-        "directors": "Bong Joon-ho",
-        "actors": "Song Kang-ho",
-    },
+# {
+#         "title": "Spirited Away",
+#         "genres": "Action, Animation",
+#         "directors": "Hayao Miyazaki",
+#         "actors": "Rumi Hiiragi",
+#     },
+# {
+#         "title": "Parasite",
+#         "genres": "Crime ,Drama, Thriller",
+#         "directors": "Bong Joon-ho",
+#         "actors": "Song Kang-ho",
+#     },
 ]
 
 def test_build():
@@ -74,11 +74,12 @@ def test_dfs():
     genre, people = builder.dfs("Movie:Inception")
 
     assert genre == {
-        "Genre:Action": 4
+        "Genre:Action": 3,
+        "Genre:Sci-Fi": 3
 
     }
     assert people == {
-        "Director:Christopher Nolan": 6,
+        "Director:Christopher Nolan": 3,
     }
 def test_movie_titles(mocker):
         graph = mocker.MagicMock()

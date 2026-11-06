@@ -149,9 +149,9 @@ def how_watch():
     if owned.status_code == 200:
         owned_copy = owned.json()
     else:
-        owned_copy = None
+        owned_copy = "Not owned"
 
-    if owned_copy:
+    if owned_copy and owned_copy != "Not owned":
         print(f"You have {movie_title} on {owned_copy}")
     else:
         print(f"you do not own {movie_title}. But...")
