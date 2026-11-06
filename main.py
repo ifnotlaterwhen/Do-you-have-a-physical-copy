@@ -246,8 +246,7 @@ def log_physical():
 # ===================================================================
 
 #Stéphanie
-def add_films(return_message = True, ask_menu=True): 
-def add_films(return_message=True):
+def add_films(return_message = True, ask_menu=True):
     global current_film
 
     current_film = input("\nWhich film would you like to add to the library? ")
@@ -281,22 +280,13 @@ def add_film_to_library(film_title, watched= True, show_error = True):
     except requests.exceptions.RequestException:
         print("Sorry, there was an issue with your post request.")
         return None 
-        print("Sorry, there was an issue with your post request.")
-        return None
+    
 
     if response.status_code not in (200, 201):
         if show_error:    
             print(f"Sorry, there seems to be an error {response.json()['error']}")
         return None 
     
-    return film_title                        
-
- 
-            try:
-                message = response.json().get("error", "Unknown error")
-            except ValueError:
-                print(f"Sorry, there seems to be an error:(Status{response.status_code}): {response.text}")
-            return None
 
     return response.json().get("title", film_title)
 
