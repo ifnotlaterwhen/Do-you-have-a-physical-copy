@@ -4,6 +4,15 @@ from app import how_to_watch
 from app import get_recommendation
 from tabulate import tabulate
 
+available_subscriptions = [
+    "Netflix",
+    "Disney+",
+    "Amazon Prime Video",
+    "Apple TV+",
+    "NOW"
+]
+
+user_subscriptions = []
 class ValueTooLow(Exception):
     pass
 class ValueTooHigh(Exception):
@@ -294,17 +303,102 @@ def add_film_to_library(film_title, watched= True, show_error = True):
 # ===================================================================
 
 def view_subscription():
-    # queries the DB to show a list of subscribed services
-    # press 1 to adjust subscriptions, 2 to go back to main menu (break)
-    # calling adjust_subscription is optional
-    pass
+    print("\n--- Your Streaming Subscriptions ---")
+
+    try:
+        response = requests.get(
+            f"{base_url}/api/subscriptions",
+            timeout=10
+        )
+        response.raise_for_status()
+        subscriptions = response.json().get("data", [])
+
+    except (requests.RequestException, ValueError) as error:
+        print(f"Unable to load subscriptions: {error}")
+        return
+
+    if not subscriptions:
+        print("You have no active subscriptions.")
+    else:
+        for number, subscription in enumerate(subscriptions, start=1):
+            print(f"{number}. {subscription['service']}")
+
+    choice = input(
+        "\nPress 1 to manage subscriptions or 2 to return: "
+    )
+
+    if choice == "1":
+        adjust_subscription()
+    elif choice == "2":
+        return
+    else:
+        print("Invalid choice. Returning to the main menu.")
+  
+ 
 
 def adjust_subscription():
-    # display a full list of avaliable subscriptions numbered (regardless of whether the user is subscribed to it)
-    # select a number for the one you want to update
-    # 1. allows users to add the subscription
-    # 2. remove a subscrfiption from the list.
-   pass
+    while True:
+        print("\n--- Manage Subscriptions ---")
+
+        try:
+            response = requests.get(
+                f"{base_url}/api/subscriptions",
+                timeout=10
+            )
+            response.raise_for_status()
+            subscriptions = response.json().get("data", [])
+
+            active_services = {
+                sub["service"] for sub in subscriptions
+            }
+
+        except (requests.RequestException, ValueError, KeyError) as error:
+            print(f"Unable to load subscriptions: {error}")
+            return
+
+        for number, service in enumerate(available_subscriptions, start=1):
+            status = (
+                "Subscribed"
+                if service in active_services
+                else "Not subscribed"
+            )
+            print(f"{number}. {service} - {status}")
+
+        print("0. Return to main menu")
+
+        choice = input("Choose a subscription number: ")
+
+        if choice == "0":
+            return
+
+        if not choice.isdigit() or not 1 <= int(choice) <= len(available_subscriptions):
+            print("Invalid selection. Please try again.")
+            continue
+
+        service = available_subscriptions[int(choice) - 1]
+
+        try:
+            if service in active_services:
+                response = requests.delete(
+                    f"{base_url}/api/subscriptions",
+                    json={"service": service},
+                    timeout=10
+                )
+                response.raise_for_status()
+                print(f"{service} removed successfully.")
+            else:
+                response = requests.post(
+                    f"{base_url}/api/subscriptions",
+                    json={"service": service},
+                    timeout=10
+                )
+                response.raise_for_status()
+                print(f"{service} added successfully.")
+
+        except requests.RequestException as error:
+            print(f"Unable to update subscription: {error}")
+
+  
 
 def DB_init():
     check = requests.get(f"{base_url}/api/init").json()
