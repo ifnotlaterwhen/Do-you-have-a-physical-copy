@@ -28,18 +28,6 @@ FAKE_DATA = [
         "directors": "Christopher Nolan",
         "actors": "Timothée Chalamet",
     },
-# {
-#         "title": "Spirited Away",
-#         "genres": "Action, Animation",
-#         "directors": "Hayao Miyazaki",
-#         "actors": "Rumi Hiiragi",
-#     },
-# {
-#         "title": "Parasite",
-#         "genres": "Crime ,Drama, Thriller",
-#         "directors": "Bong Joon-ho",
-#         "actors": "Song Kang-ho",
-#     },
 ]
 
 def test_build():
