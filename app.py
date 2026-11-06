@@ -167,11 +167,15 @@ def add_watched_films():
 
     official_title = film["title"] 
 
-    existing_titles = [row[0].lower() for row in dbutils.fetch_all_movies()]
-    if official_title.lower() in existing_titles:
+    try:
+        existing_titles = [row[0].lower() for row in dbutils.fetch_all_movies()]
+        if official_title.lower() in existing_titles:
             return jsonify({"error": f"{official_title} is already in your library"}), 409
 
-    dbutils.new_watched_film(film)
+    
+        dbutils.new_watched_film(film)
+    except mysql.connector.Error:
+        return jsonify({"error": "There was a problem with the database"}), 500 
          
     return jsonify ({"title": official_title, "watched": True}), 200
     
