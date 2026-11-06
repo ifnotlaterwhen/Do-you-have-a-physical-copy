@@ -352,8 +352,7 @@ class FilmDB:
                     WHERE film_info.title = %s
                 """, (movie,))
                 data = cur.fetchone()
-                if data is None:
-                    return "Not owned"
+
                 return data["owned_copy"]
 
 
