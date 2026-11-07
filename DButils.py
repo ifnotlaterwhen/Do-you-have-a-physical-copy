@@ -253,38 +253,11 @@ class FilmDB:
                 """)
                 return [row for row in cur.fetchall()]
 
-    def fetch_film_by_id(self, fetch_film_id):
-        with self.db_manager.get_connection() as db:
-            with db.cursor(dictionary=True) as cur:
-                cur.execute(f"USE {self.db_name}")
-                cur.execute("""
-                SELECT title, overview
-                FROM film_info
-                INNER JOIN my_films 
-                ON film_info.my_film_id = my_films.my_film_id
-                WHERE my_films.my_film_id = %s
-                """, (fetch_film_id,))
-                return cur.fetchone()
-
-
 # ===================================================================
 #                         ADD WATCHED FILM
 # ===================================================================
 
-    def add_watched_film(self, film_id):
-        with self.db_manager.get_connection() as db:
-            with db.cursor() as cur:
-                cur.execute(f"USE {self.db_name}")
-
-                cur.execute("""
-                    UPDATE my_films
-                    SET watched = TRUE
-                    WHERE my_film_id = %s
-                """, (film_id,))
-
-            db.commit()
-
-    def new_watched_film(self, title, tmdb_id, overview=None):
+    def new_watched_film(self, film):
         with self.db_manager.get_connection() as db:
             with db.cursor() as cur:
                 cur.execute(f"USE {self.db_name}")
@@ -292,10 +265,42 @@ class FilmDB:
                 cur.execute("INSERT INTO my_films (watched) VALUES (%s)", (True,))
                 my_film_id = cur.lastrowid    
         
-                cur.execute(
-                    "INSERT INTO film_info (my_film_id, api_film_TMDB_id,title, overview) VALUES (%s, %s, %s, %s)",
-                    (my_film_id, tmdb_id, title, overview),
-                )
+                cur.execute("""
+                    INSERT INTO film_info (my_film_id, api_film_TMDB_id,title, overview) 
+                    VALUES (%s, %s, %s, %s)""",
+                   (my_film_id, 
+                   film["tmdb_id"], film["title"],film["overview"]))
+                film_id = cur.lastrowid
+
+                for name in film["genres"]:
+                    cur.execute("SELECT genre_id FROM film_genres WHERE genre_name = %s", (name,))
+                    row = cur.fetchone()
+                    if row:
+                        genre_id = row[0]
+                    else:
+                        cur.execute("INSERT INTO film_genres (genre_name) VALUES (%s)", (name,))
+                        genre_id = cur.lastrowid
+                    cur.execute("INSERT INTO junc_genres (film_id, genre_id) VALUES (%s, %s)", (film_id, genre_id))
+
+                for name in film["directors"]:
+                    cur.execute("SELECT director_id FROM directors WHERE name = %s", (name,))
+                    row = cur.fetchone()
+                    if row:
+                        director_id = row[0]
+                    else:
+                        cur.execute("INSERT INTO directors (name) VALUES (%s)", (name,))
+                        director_id = cur.lastrowid
+                    cur.execute("INSERT INTO junc_directors (director_id, film_id) VALUES (%s, %s)", (director_id, film_id))
+
+                for name in film["actors"]:
+                    cur.execute("SELECT actor_id FROM actors WHERE name = %s", (name,))
+                    row = cur.fetchone()
+                    if row:
+                        actor_id = row[0]
+                    else:
+                        cur.execute("INSERT INTO actors (name) VALUES (%s)", (name,))
+                        actor_id = cur.lastrowid
+                    cur.execute("INSERT INTO junc_actors (actor_id, film_id) VALUES (%s, %s)", (actor_id, film_id))
             
             db.commit()
                 
@@ -315,21 +320,53 @@ class FilmDB:
 #                        SEE PHYSICAL COPIES
 # =================================================================== 
 
-# fetch_physical_copies, fetch_owned_copy cut.
-# Physical copy updates are handled by add_physical_copy.
-
-    def how_to_watch(self, film_id):
+    def fetch_physical_copies(self):
         with self.db_manager.get_connection() as db:
-            with db.cursor(dictionary=True) as cur:
+            with db.cursor() as cur:
                 cur.execute(f"USE {self.db_name}")
                 cur.execute("""
-                    SELECT title, api_film_TMDB_id
+                    SELECT
+                        film_info.title,
+                        my_films.dvd_owned,
+                        my_films.bluray_owned,
+                        my_films.`4k_bluray_owned`
                     FROM film_info
-                    WHERE my_film_id = %s
-                """, (film_id,))
+                    INNER JOIN my_films 
+                    ON film_info.my_film_id = my_films.my_film_id
+                    WHERE my_films.dvd_owned = True
+                        OR my_films.bluray_owned = True
+                        OR my_films.`4k_bluray_owned` = True
+                """)
+                return cur.fetchall()
 
-                return cur.fetchone()
-                
+    def fetch_owned_copy(self, movie):
+        with self.db_manager.get_connection() as db:
+            with db.cursor() as cur:
+                cur.execute(f"USE {self.db_name}")
+                cur.execute("""
+                  SELECT
+                    my_films.dvd_owned,
+                    my_films.bluray_owned,
+                    my_films.`4k_bluray_owned`
+                FROM my_films
+                JOIN film_info
+                    ON my_films.my_film_id = film_info.my_film_id
+                WHERE film_info.title = %s
+                """, (movie,))
+
+
+                copies = list(chain.from_iterable(cur.fetchall()))
+
+                if not copies:
+                    return[]
+                list_of_copies = []
+                if copies[0]:
+                    list_of_copies.append("DVD")
+                if copies[1]:
+                    list_of_copies.append("Blu-Ray")
+                if copies[2]:
+                    list_of_copies.append("4K Blu-ray")
+                return list_of_copies
                 
 # ===================================================================
 #                         ADD PHYSICAL COPY
@@ -360,42 +397,6 @@ class FilmDB:
 
             db.commit()
 
-    def fetch_owned_copy(self, movie):
-        with self.db_manager.get_connection() as db:
-            with db.cursor() as cur:
-                cur.execute(f"USE {self.db_name}")
-                cur.execute("""
-                    SELECT
-                        CASE
-                            WHEN my_films.dvd_owned = TRUE THEN 'DVD'
-                            WHEN my_films.bluray_owned = TRUE THEN 'bluray'
-                            WHEN my_films.`4k_bluray_owned` = TRUE THEN '4k_bluray'
-                        END AS owned_copy
-                    FROM my_films
-                    JOIN film_info
-                        ON my_films.my_film_id = film_info.my_film_id
-                    WHERE film_info.title = %s
-                """, (movie,))
-                return cur.fetchone()
-
-# ===================================================================
-#                         ADD WATCHED FILM
-# ===================================================================
-
-# Potential to be cut?
-    
-    def add_watched_film(self, film_id):
-        with self.db_manager.get_connection() as db:
-            with db.cursor() as cur:
-                cur.execute(f"USE {self.db_name}")
-                cur.execute("""
-                    UPDATE my_films
-                    SET watched = TRUE
-                    WHERE my_film_id = %s
-                """, (film_id,))
-
-            db.commit()
-
 # ===================================================================
 #                         SUBSCRIPTIONS
 # ===================================================================
@@ -420,6 +421,7 @@ class FilmDB:
                     when dvd_owned = True then 'dvd_owned'
                     when bluray_owned = True then 'bluray_owned'
                     when 4k_bluray_owned = True then '4k_bluray_owned'
+                    ELSE "Not owned"
                 end as owned_copy
                 from my_films
                 left join film_info
@@ -446,4 +448,4 @@ def run():
     test_db.seed_db_mock()
 
 if __name__ == "__main__":
-    test_movie_fetching()
+    run()
