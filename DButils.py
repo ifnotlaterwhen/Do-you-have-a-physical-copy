@@ -382,6 +382,8 @@ class FilmDB:
                 """, (movie,))
                 copies = list(chain.from_iterable(cur.fetchall()))
                 list_of_copies = []
+                if len(copies) == 0:
+                    return list_of_copies
                 if copies[0]:
                     list_of_copies.append("DVD")
                 if copies[1]:
@@ -495,6 +497,9 @@ def run():
     test_db = seedDB("cinefiles")
     test_db.init_db()
     test_db.seed_db_mock()
+    testowned = FilmDB("cinefiles")
+    result = testowned.fetch_owned_copy("yellow")
+    print(result)
 
 if __name__ == "__main__":
     run()
