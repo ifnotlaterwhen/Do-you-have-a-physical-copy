@@ -147,8 +147,12 @@ def how_watch():
         print("Please type the name of the movie")
         return None
 
+
     streaming = requests.get(f"http://127.0.0.1:5000/api/how-to-watch/{movie_title}")
-    owned = requests.get(f"http://127.0.0.1:5000/api/owned-physical/{movie_title}").json()
+    owned = requests.get(f"http://127.0.0.1:5000/api/owned-physical/{movie_title}")
+
+    owned = owned.json()
+
     if len(owned) != 0:
         print(f"You have {movie_title} on:")
         for copy in owned:
@@ -159,7 +163,6 @@ def how_watch():
     data = streaming.json()
     print(data)
     return return_to_menu()
-
 
 
 # ===================================================================
@@ -310,4 +313,4 @@ def DB_init():
 
 if __name__ == "__main__":
     run()
-    #how_watch()    # don't think should be called here, messes up the user flow
+

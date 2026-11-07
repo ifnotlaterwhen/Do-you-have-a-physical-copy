@@ -78,7 +78,7 @@ class TMDB_api:
 
 
             for items in results:
-                self.genre_id_cache[items["name"]] = items["id"] #<- store genres in a dictionary to avoid having to call the api everytime. then use the ids in the dict to fewtch genre id
+                self.genre_id_cache[items["name"]] = items["id"] #<- store genres in a dictionary to avoid having to call the api everytime the program is running. then use the ids in the dict to fetch genre id
 
         genre_results = []
         for genres in genre:
@@ -90,29 +90,30 @@ class TMDB_api:
         return "|".join(genre_results)
 
 
-    def person_id(self, person):
     # split person id into 2 groups actor, director for recommendation parameters
+    def person_id(self, person):
+        # split person id into 2 groups actor, director for recommendation parameters
         cast_id = []
         crew_id = []
 
         for node in person:
-           role, name = node.split(":",1)
-           people = self.api_request(persons_ids, {"query": name})
-           if people is None:
-               return None, None
+            role, name = node.split(":", 1)
+            people = self.api_request(persons_ids, {"query": name})
+            if people is None:
+                return None, None
 
-           results = people["results"]
+            results = people["results"]
 
-           if not results:
-             continue
+            if not results:
+                continue
 
-           if role == "Actor":
+            if role == "Actor":
                 cast_id.append(str(results[0]["id"]))
-           elif role == "Director":
+            elif role == "Director":
                 crew_id.append(str(results[0]["id"]))
 
-        return "|".join(cast_id), "|".join(crew_id) #<- oring the results so that the api will either choose one or the other in recommendation paramaeters
-
+        return "|".join(cast_id), "|".join(
+            crew_id)  # <- oring the results so that the api will either choose one or the other in recommendation paramaeters
 
 # recommendation logic
     def get_recommendation(self, genre, person, watched_titles):
@@ -124,11 +125,12 @@ class TMDB_api:
         genre_ids = self.genre_id(genre)
         cast_ids, crew_ids = self.person_id(person)
 
+
         if genre_ids:
             params["with_genres"] = genre_ids
         if cast_ids:
             params["with_cast"] = cast_ids
-        if crew_ids:
+        elif crew_ids:
             params["with_crew"] = crew_ids
 
         recommend = self.api_request(discover, params)

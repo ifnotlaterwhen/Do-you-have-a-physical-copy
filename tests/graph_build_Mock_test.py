@@ -11,11 +11,25 @@ FAKE_DATA = [
     },
     {
         "title": "Interstellar",
-        "genres": "Sci-Fi, Drama",
+        "genres": "Sci-Fi, Adventure",
         "directors": "Christopher Nolan",
         "actors": "Matthew McConaughey",
     },
+
+    {
+        "title": "The Matrix",
+        "genres": "Action, Crime, Thriller",
+        "directors": "Lana Wachowski, Lilly Wachowski",
+        "actors": "KeanuReeves",
+    },
+    {
+        "title": "Dune Part 2",
+        "genres": "Action, Adventure, Sci-Fi",
+        "directors": "Christopher Nolan",
+        "actors": "Timothée Chalamet",
+    },
 ]
+
 def test_build():
     mock_db = MagicMock()
     mock_db.fetch_info_for_graph.return_value = FAKE_DATA
@@ -32,20 +46,29 @@ def test_build():
     assert "Director:Christopher Nolan" in interstellar
     assert "Actor:Matthew McConaughey" in interstellar
     assert "Genre:Sci-Fi" in interstellar
-    assert "Genre:Drama" in interstellar
+    assert "Genre:Adventure" in interstellar
+    assert "Genre:Sci-Fi" in interstellar
 
     mock_db.fetch_info_for_graph.assert_called_once()
 
 
-def test_build_connects_actor_to_director():
+def test_dfs():
     mock_db = MagicMock()
     mock_db.fetch_info_for_graph.return_value = FAKE_DATA
 
-    graph = GraphBuild(Graph(), mock_db).build()
+    builder = GraphBuild(Graph(), mock_db)
+    builder.build()
 
-    assert "Director:Christopher Nolan" in graph.adjacency["Actor:Leonardo DiCaprio"]
-    assert "Actor:Leonardo DiCaprio" in graph.adjacency["Director:Christopher Nolan"]
+    genre, people = builder.dfs("Movie:Inception")
 
+    assert genre == {
+        "Genre:Action": 3,
+        "Genre:Sci-Fi": 3
+
+    }
+    assert people == {
+        "Director:Christopher Nolan": 3,
+    }
 def test_movie_titles(mocker):
         graph = mocker.MagicMock()
         graph.adjacency = {

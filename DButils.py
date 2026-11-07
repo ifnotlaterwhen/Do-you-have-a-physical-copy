@@ -371,16 +371,21 @@ class FilmDB:
             with db.cursor() as cur:
                 cur.execute(f"USE {self.db_name}")
                 cur.execute("""
-                    SELECT
-                        my_films.dvd_owned,
-                        my_films.bluray_owned,
-                        my_films.`4k_bluray_owned` 
-                    FROM my_films
-                    JOIN film_info
-                        ON my_films.my_film_id = film_info.my_film_id
-                    WHERE film_info.title = %s
+                  SELECT
+                    my_films.dvd_owned,
+                    my_films.bluray_owned,
+                    my_films.`4k_bluray_owned`
+                FROM my_films
+                JOIN film_info
+                    ON my_films.my_film_id = film_info.my_film_id
+                WHERE film_info.title = %s
                 """, (movie,))
+
+
                 copies = list(chain.from_iterable(cur.fetchall()))
+
+                if not copies:
+                    return[]
                 list_of_copies = []
                 if copies[0]:
                     list_of_copies.append("DVD")
@@ -471,6 +476,7 @@ class FilmDB:
                     when dvd_owned = True then 'dvd_owned'
                     when bluray_owned = True then 'bluray_owned'
                     when 4k_bluray_owned = True then '4k_bluray_owned'
+                    ELSE "Not owned"
                 end as owned_copy
                 from my_films
                 left join film_info
