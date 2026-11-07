@@ -107,7 +107,7 @@ def show_DB():
     all_movies = requests.get(f"{base_url}/api/overview") #See app.py for this route
     table = tabulate(all_movies.json()["data"], headers=['Title', 'Genre', 'Directed by', 'Starring','4k Blu-ray', 'Blu-ray', 'DVD'], tablefmt='markdown')
     # print(all_movies.json()["data"])
-    print(table)
+    print("\n", table)
     return return_to_menu()
 
 # ===================================================================
@@ -149,6 +149,7 @@ def how_watch():
 
 
     streaming = requests.get(f"http://127.0.0.1:5000/api/how-to-watch/{movie_title}")
+<<<<<<< HEAD
     owned = requests.get(f"http://127.0.0.1:5000/api/owned-physical/{movie_title}")
     if owned.status_code == 200:
         owned_copy = owned.json()
@@ -157,6 +158,13 @@ def how_watch():
 
     if owned_copy and owned_copy != "Not owned":
         print(f"You have {movie_title} on {owned_copy}")
+=======
+    owned = requests.get(f"http://127.0.0.1:5000/api/owned-physical/{movie_title}").json()
+    if len(owned) != 0:
+        print(f"You have {movie_title} on:")
+        for copy in owned:
+            print("-", copy)
+>>>>>>> origin
     else:
         print(f"You do not own {movie_title}. But...")
 

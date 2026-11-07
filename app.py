@@ -77,7 +77,7 @@ def physical_copy(movie):
     physical = FilmDB("cinefiles")
     result = physical.fetch_owned_copy(movie)
 
-    return jsonify(result)
+    return jsonify(result),200
 # ===================================================================
 #                         ADD PHYSICAL COPY
 # ===================================================================

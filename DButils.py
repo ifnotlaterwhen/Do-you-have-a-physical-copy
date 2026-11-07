@@ -372,22 +372,40 @@ class FilmDB:
                 cur.execute(f"USE {self.db_name}")
                 cur.execute("""
                     SELECT
+<<<<<<< HEAD
                         CASE
                             WHEN my_films.dvd_owned = TRUE THEN 'DVD'
                             WHEN my_films.bluray_owned = TRUE THEN 'bluray'
                             WHEN my_films.`4k_bluray_owned` = TRUE THEN '4k_bluray'
                             ELSE "Not owned"
                         END AS owned_copy
+=======
+                        my_films.dvd_owned,
+                        my_films.bluray_owned,
+                        my_films.`4k_bluray_owned` 
+>>>>>>> origin
                     FROM my_films
                     JOIN film_info
                         ON my_films.my_film_id = film_info.my_film_id
                     WHERE film_info.title = %s
                 """, (movie,))
+<<<<<<< HEAD
                 data = cur.fetchone()
 
                 return data["owned_copy"]
 
 
+=======
+                copies = list(chain.from_iterable(cur.fetchall()))
+                list_of_copies = []
+                if copies[0]:
+                    list_of_copies.append("DVD")
+                if copies[1]:
+                    list_of_copies.append("Blu-Ray")
+                if copies[2]:
+                    list_of_copies.append("4K Blu-ray")
+                return list_of_copies
+>>>>>>> origin
 
     def how_to_watch(self, film_id):
         with self.db_manager.get_connection() as db:
@@ -429,24 +447,6 @@ class FilmDB:
                 """, (title,))
 
             db.commit()
-
-    def fetch_owned_copy(self, movie):
-        with self.db_manager.get_connection() as db:
-            with db.cursor() as cur:
-                cur.execute(f"USE {self.db_name}")
-                cur.execute("""
-                    SELECT
-                        CASE
-                            WHEN my_films.dvd_owned = TRUE THEN 'DVD'
-                            WHEN my_films.bluray_owned = TRUE THEN 'bluray'
-                            WHEN my_films.`4k_bluray_owned` = TRUE THEN '4k_bluray'
-                        END AS owned_copy
-                    FROM my_films
-                    JOIN film_info
-                        ON my_films.my_film_id = film_info.my_film_id
-                    WHERE film_info.title = %s
-                """, (movie,))
-                return cur.fetchone()
 
     # ===================================================================
 #                         ADD WATCHED FILM
