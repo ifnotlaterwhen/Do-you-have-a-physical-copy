@@ -389,13 +389,13 @@ class FilmDB:
                         ON my_films.my_film_id = film_info.my_film_id
                     WHERE film_info.title = %s
                 """, (movie,))
-<<<<<<< HEAD
+
                 data = cur.fetchone()
 
                 return data["owned_copy"]
 
 
-=======
+
                 copies = list(chain.from_iterable(cur.fetchall()))
                 list_of_copies = []
                 if copies[0]:
@@ -405,7 +405,7 @@ class FilmDB:
                 if copies[2]:
                     list_of_copies.append("4K Blu-ray")
                 return list_of_copies
->>>>>>> origin
+
 
     def how_to_watch(self, film_id):
         with self.db_manager.get_connection() as db:
