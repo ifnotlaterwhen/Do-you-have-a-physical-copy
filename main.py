@@ -154,8 +154,6 @@ def how_watch():
 
     if owned.status_code == 200:
         owned = owned.json()
-    else:
-        owned = []
 
     if len(owned) != 0:
         print(f"You have {movie_title} on:")
