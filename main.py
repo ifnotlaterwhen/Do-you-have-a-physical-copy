@@ -11,7 +11,6 @@ available_subscriptions = [
     "NOW"
 ]
 
-user_subscriptions = []
 class ValueTooLow(Exception):
     pass
 class ValueTooHigh(Exception):
