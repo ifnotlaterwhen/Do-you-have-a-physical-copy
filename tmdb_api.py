@@ -130,7 +130,7 @@ class TMDB_api:
             params["with_genres"] = genre_ids
         if cast_ids:
             params["with_cast"] = cast_ids
-        if crew_ids:
+        elif crew_ids:
             params["with_crew"] = crew_ids
 
         recommend = self.api_request(discover, params)
