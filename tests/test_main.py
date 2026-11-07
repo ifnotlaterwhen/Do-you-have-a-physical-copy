@@ -1,7 +1,13 @@
 from unittest.mock import patch, MagicMock
 import requests
 import main
+import pytest
 from main import add_film_to_library, add_films
+
+@pytest.fixture(autouse=True)
+def no_menu_prompt():
+    with patch("main.return_to_menu", return_value=None):
+        yield
 
 # @patch("main.requests.post")
 # def test_returns_title_on_success(mock_post):

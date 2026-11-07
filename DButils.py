@@ -22,15 +22,15 @@ class seedDB:
                 cur.execute("""
                     CREATE TABLE my_films (
                         my_film_id INT PRIMARY KEY AUTO_INCREMENT,
-                        watched BOOL,
-                        dvd_owned BOOL,
-                        bluray_owned BOOL,
-                        4k_bluray_owned BOOL
+                        watched BOOL DEFAULT TRUE,
+                        dvd_owned BOOL DEFAULT FALSE,
+                        bluray_owned BOOL DEFAULT FALSE,
+                        4k_bluray_owned BOOL DEFAULT FALSE
                     )""")
                 cur.execute("""
                     CREATE TABLE film_info (
                         film_id INT PRIMARY KEY AUTO_INCREMENT,
-                        my_film_id INT,
+                        my_film_id INT NOT NULL,
                         api_film_TMDB_id INT,
                         title VARCHAR(100),
                         overview TEXT,
@@ -43,8 +43,8 @@ class seedDB:
                     )""")
                 cur.execute("""
                     CREATE TABLE junc_genres (
-                        film_id INT,
-                        genre_id INT,
+                        film_id INT NOT NULL,
+                        genre_id INT NOT NULL,
                         FOREIGN KEY(film_id) REFERENCES film_info(film_id),
                         FOREIGN KEY(genre_id) REFERENCES film_genres(genre_id)
                     )""")
@@ -55,8 +55,8 @@ class seedDB:
                     )""")
                 cur.execute("""
                     CREATE TABLE junc_directors (
-                        director_id INT,
-                        film_id INT,
+                        director_id INT NOT NULL,
+                        film_id INT NOT NULL,
                         FOREIGN KEY(director_id) REFERENCES directors(director_id),
                         FOREIGN KEY(film_id) REFERENCES film_info(film_id)
                     )""")
@@ -67,8 +67,8 @@ class seedDB:
                     )""")
                 cur.execute("""
                     CREATE TABLE junc_actors (
-                        actor_id INT,
-                        film_id INT,
+                        actor_id INT NOT NULL,
+                        film_id INT NOT NULL,
                         FOREIGN KEY(actor_id) REFERENCES actors(actor_id),
                         FOREIGN KEY(film_id) REFERENCES film_info(film_id)
                     )""")
@@ -76,8 +76,8 @@ class seedDB:
                     CREATE TABLE subscriptions (
                         subscription_id INT PRIMARY KEY AUTO_INCREMENT,
                         service VARCHAR(50),
-                        service_TMDB_id INT,
-                        active BOOL
+                        service_TMDB_id INT DEFAULT NULL,
+                        active BOOL DEFAULT FALSE
                     )""")
             db.commit()
 
@@ -167,6 +167,25 @@ class seedDB:
                             ))
                 db.commit()
 
+    def seed_subscriptions(self):
+            subs = ["Netflix", "Prime Video", "Disney+", "NOW", "Apple TV+"]
+            with self.db_manager.get_connection() as db:
+                with db.cursor() as cur:
+                    for sub in subs:
+                        cur.execute(f"USE {self.db_name}")
+                        cur.execute("""
+                            INSERT INTO subscriptions (service)
+                            VALUES 
+                            (%s)""",(
+                                sub,
+                            ))
+                db.commit()
+
+    def dropDB(self):
+        with self.db_manager.get_connection() as db:
+            with db.cursor() as cur:
+                cur.execute(f"DROP DATABASE IF EXISTS {self.db_name}")
+            db.commit()
 # ===================================================================
 #                         FETCH QUERIES
 # ===================================================================
@@ -211,7 +230,7 @@ class FilmDB:
 
     def fetch_info_for_graph(self):
         with self.db_manager.get_connection() as db:
-            with db.cursor() as cur:
+            with db.cursor(dictionary=True) as cur:
                 cur.execute(f"USE {self.db_name}")
                 cur.execute("""SELECT fi.title, GROUP_CONCAT(DISTINCT fg.genre_name SEPARATOR ", ") AS genres, GROUP_CONCAT(DISTINCT d.name SEPARATOR ", ") AS directors,GROUP_CONCAT(DISTINCT a.name SEPARATOR ", ") AS actors
                     FROM my_films mf
@@ -257,7 +276,7 @@ class FilmDB:
 
             db.commit()
 
-    def new_watched_film(self, title, tmdb_id, overview=None):
+    def new_watched_film(self, film):
         with self.db_manager.get_connection() as db:
             with db.cursor() as cur:
                 cur.execute(f"USE {self.db_name}")
@@ -265,10 +284,42 @@ class FilmDB:
                 cur.execute("INSERT INTO my_films (watched) VALUES (%s)", (True,))
                 my_film_id = cur.lastrowid    
         
-                cur.execute(
-                    "INSERT INTO film_info (my_film_id, api_film_TMDB_id,title, overview) VALUES (%s, %s, %s, %s)",
-                    (my_film_id, tmdb_id, title, overview),
-                )
+                cur.execute("""
+                    INSERT INTO film_info (my_film_id, api_film_TMDB_id,title, overview) 
+                    VALUES (%s, %s, %s, %s)""",
+                   (my_film_id, 
+                   film["tmdb_id"], film["title"],film["overview"]))
+                film_id = cur.lastrowid
+
+                for name in film["genres"]:
+                    cur.execute("SELECT genre_id FROM film_genres WHERE genre_name = %s", (name,))
+                    row = cur.fetchone()
+                    if row:
+                        genre_id = row[0]
+                    else:
+                        cur.execute("INSERT INTO film_genres (genre_name) VALUES (%s)", (name,))
+                        genre_id = cur.lastrowid
+                    cur.execute("INSERT INTO junc_genres (film_id, genre_id) VALUES (%s, %s)", (film_id, genre_id))
+
+                for name in film["directors"]:
+                    cur.execute("SELECT director_id FROM directors WHERE name = %s", (name,))
+                    row = cur.fetchone()
+                    if row:
+                        director_id = row[0]
+                    else:
+                        cur.execute("INSERT INTO directors (name) VALUES (%s)", (name,))
+                        director_id = cur.lastrowid
+                    cur.execute("INSERT INTO junc_directors (director_id, film_id) VALUES (%s, %s)", (director_id, film_id))
+
+                for name in film["actors"]:
+                    cur.execute("SELECT actor_id FROM actors WHERE name = %s", (name,))
+                    row = cur.fetchone()
+                    if row:
+                        actor_id = row[0]
+                    else:
+                        cur.execute("INSERT INTO actors (name) VALUES (%s)", (name,))
+                        actor_id = cur.lastrowid
+                    cur.execute("INSERT INTO junc_actors (actor_id, film_id) VALUES (%s, %s)", (actor_id, film_id))
             
             db.commit()
                 
@@ -320,18 +371,29 @@ class FilmDB:
             with db.cursor() as cur:
                 cur.execute(f"USE {self.db_name}")
                 cur.execute("""
-                    SELECT
-                        CASE
-                            WHEN my_films.dvd_owned = TRUE THEN 'DVD'
-                            WHEN my_films.bluray_owned = TRUE THEN 'bluray'
-                            WHEN my_films.`4k_bluray_owned` = TRUE THEN '4k_bluray'
-                        END AS owned_copy
-                    FROM my_films
-                    JOIN film_info
-                        ON my_films.my_film_id = film_info.my_film_id
-                    WHERE film_info.title = %s
+                  SELECT
+                    my_films.dvd_owned,
+                    my_films.bluray_owned,
+                    my_films.`4k_bluray_owned`
+                FROM my_films
+                JOIN film_info
+                    ON my_films.my_film_id = film_info.my_film_id
+                WHERE film_info.title = %s
                 """, (movie,))
-                return cur.fetchone()
+
+
+                copies = list(chain.from_iterable(cur.fetchall()))
+
+                if not copies:
+                    return[]
+                list_of_copies = []
+                if copies[0]:
+                    list_of_copies.append("DVD")
+                if copies[1]:
+                    list_of_copies.append("Blu-Ray")
+                if copies[2]:
+                    list_of_copies.append("4K Blu-ray")
+                return list_of_copies
 
     def how_to_watch(self, film_id):
         with self.db_manager.get_connection() as db:
@@ -373,24 +435,6 @@ class FilmDB:
                 """, (title,))
 
             db.commit()
-
-    def fetch_owned_copy(self, movie):
-        with self.db_manager.get_connection() as db:
-            with db.cursor() as cur:
-                cur.execute(f"USE {self.db_name}")
-                cur.execute("""
-                    SELECT
-                        CASE
-                            WHEN my_films.dvd_owned = TRUE THEN 'DVD'
-                            WHEN my_films.bluray_owned = TRUE THEN 'bluray'
-                            WHEN my_films.`4k_bluray_owned` = TRUE THEN '4k_bluray'
-                        END AS owned_copy
-                    FROM my_films
-                    JOIN film_info
-                        ON my_films.my_film_id = film_info.my_film_id
-                    WHERE film_info.title = %s
-                """, (movie,))
-                return cur.fetchone()
 
     # ===================================================================
 #                         ADD WATCHED FILM
@@ -483,6 +527,7 @@ class FilmDB:
                     when dvd_owned = True then 'dvd_owned'
                     when bluray_owned = True then 'bluray_owned'
                     when 4k_bluray_owned = True then '4k_bluray_owned'
+                    ELSE "Not owned"
                 end as owned_copy
                 from my_films
                 left join film_info
@@ -494,6 +539,12 @@ class FilmDB:
                 """, (movie,))
                 return cur.fetchone()
 
+    def check_db_exists(self):
+        with self.db_manager.get_connection() as db:
+            with db.cursor() as cur:
+                cur.execute("SHOW DATABASES")
+                result = list(chain.from_iterable(cur.fetchall()))
+                return True if self.db_name in result else False
 
 # Run commands
 
@@ -501,11 +552,6 @@ def run():
     test_db = seedDB("cinefiles")
     test_db.init_db()
     test_db.seed_db_mock()
-
-    # print("HOW TO WATCH:")
-    # print(test_db.how_to_watch(1))
-    # print(test_db.fetch_overview())
-
 
 if __name__ == "__main__":
     run()

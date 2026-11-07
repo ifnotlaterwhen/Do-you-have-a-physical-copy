@@ -2,6 +2,7 @@ import pytest
 import requests
 from tmdb_api import TMDB_api
 
+
 baseUrl = "https://api.themoviedb.org/3"
 
 class Test_TMDBapi:
@@ -85,9 +86,27 @@ class Test_TMDBapi:
         mocker.patch("tmdb_api.requests.get", return_value=mock_data)
 
         genre = TMDB_api("https://api.themoviedb.org/3", "fake-api-key")
-        result = genre.genre_id("Action")
+        result = genre.genre_id({"Genre:Action": 5})
 
-        assert result == 28
+        assert result == "28"
+
+    def test_genre_id_multiple(self, mocker):
+        data = {
+            "genres": [
+                {"id": 28, "name": "Action"},
+                {"id": 12, "name": "Adventure"},
+                {"id": 16, "name": "Animation"},
+            ]
+        }
+
+        mock_data = mocker.MagicMock(status_code=200)
+        mock_data.json.return_value = data
+        mock_get = mocker.patch("tmdb_api.requests.get", return_value=mock_data)
+
+        genre = TMDB_api("https://api.themoviedb.org/3", "fake-api-key")
+        result = genre.genre_id({"Genre:Action": 5, "Genre:Animation": 3})
+
+        assert result == "28|16"
 
 
     def test_person_id(self, mocker):
@@ -116,6 +135,50 @@ class Test_TMDBapi:
         mocker.patch("tmdb_api.requests.get", return_value=mock_person)
 
         person = TMDB_api("https://api.themoviedb.org/3", "fake-api-key")
-        result = person.person_id("Tom Hanks")
+        result = person.person_id({"Actor:Tom Hanks" : 5})
 
-        assert result == 2
+        assert result == ("2","")
+
+
+
+    def test_get_recommendation(self, mocker):
+
+        genre_list = mocker.MagicMock(status_code=200)
+        genre_list.json.return_value = {
+            "genres": [
+                {"id": 28, "name": "Action"},
+                {"id": 35, "name": "Comedy"},
+            ]
+        }
+
+        hanks = mocker.MagicMock(status_code=200)
+        hanks.json.return_value = {"results": [{"id": 2, "name": "Tom Hanks"}]}
+
+        nolan = mocker.MagicMock(status_code=200)
+        nolan.json.return_value = {"results": [{"id": 45, "name": "Christopher Nolan"}]}
+
+        discover = mocker.MagicMock(status_code=200)
+        discover.json.return_value = {
+            "page": 1,
+            "results": [
+                {"id": 13, "title": "Forrest Gump"},
+                {"id": 497, "title": "The Green Mile"},
+                {"id": 857, "title": "Saving Private Ryan"},
+                {"id": 8358, "title": "Cast Away"},
+                {"id": 862, "title": "Toy Story"},
+            ],
+        }
+
+        mocker.patch(
+            "tmdb_api.requests.get",
+            side_effect=[genre_list, hanks, nolan, discover],
+        )
+        watched = {"Forrest Gump", "Cast Away"}
+        api = TMDB_api("https://api.themoviedb.org/3", "fake-api-key")
+        result = api.get_recommendation(
+            {"Genre:Action": 5},
+            {"Actor:Tom Hanks": 5, "Director:Christopher Nolan": 4},
+            watched,
+        )
+
+        assert result == "The Green Mile, Saving Private Ryan, Toy Story"

@@ -6,6 +6,7 @@ class GraphBuild:
     def __init__(self, graph, db):
         self.graph = graph
         self.db = db
+        self.start_node = None
 
 
     def build(self):
@@ -16,28 +17,33 @@ class GraphBuild:
         for row in sql_results:
             movie_node = "Movie:" + row["title"]
 
-            actor_node = "Actor:" + row["actors"]
-            director_node = "Director:" + row["directors"]
+            if self.start_node is None:
+                self.start_node = movie_node
 
-            self.graph.add_node(movie_node)
-            self.graph.add_node(actor_node)
-            self.graph.add_node(director_node)
+            actors = row["actors"].split(", ")
+            directors = row["directors"].split(", ")
+            genres = row["genres"].split(", ")
 
-            self.graph.connections(movie_node, actor_node)
-            self.graph.connections(movie_node, director_node)
-            self.graph.connections(actor_node, director_node)
+            actor_nodes = ["Actor:" + name for name in actors]
+            director_nodes = ["Director:" + name for name in directors]
+            genre_nodes = ["Genre:" + name for name in genres]
 
-            for genre in row["genre"].split(", "):
-                genre_node = "Genre:" + genre
-                self.graph.add_node(genre_node)
-                self.graph.connections(movie_node, genre_node)
+            for actor_node in actor_nodes:
+                self.graph.connections(movie_node, actor_node)
+
+            for director_node in director_nodes:
+                self.graph.connections(movie_node, director_node)
+
+            for genre in genre_nodes:
+                self.graph.connections(movie_node, genre)
 
         return self.graph
 
+#recursively traversing the graph counting how many each node appears
     def dfs(self, start_node):
         seen = set()
         frequency = defaultdict(int)
-        top_nodes = 4
+        top_nodes = 3
         def visit(node):
             seen.add(node)
             for neighbor in self.graph.adjacency[node]:
@@ -47,7 +53,7 @@ class GraphBuild:
 
         visit(start_node)
 
-        genres = {}    #<- created 2 dicts to store the top genres seperate from the top directors and actors for the recommendation logic in the tmdb_api class. i chose to do this to avoid unessisary if else, for the genre_id and people_id methods in the tmdb_api.py.
+        genres = {}    #<- created 2 dicts to store the top genres seperate from the top directors and actors for the recommendation logic in the tmdb_api class. Makes it easier to filter results in the get_recommendation method from tmdb_api class
         people = {}
 
         for node, count in frequency.items():
@@ -59,3 +65,10 @@ class GraphBuild:
 
         return genres, people
 
+#returning movies nodes that apear in database
+    def movie_titles(self):
+        titles = set()
+        for node in self.graph.adjacency:
+            if node.startswith("Movie:"):
+                titles.add(node.replace("Movie:", "", 1))
+        return titles

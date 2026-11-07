@@ -35,7 +35,7 @@ def test_main_menu_number_too_low(monkeypatch, capsys):
     output = capsys.readouterr().out
 
     assert result == 1
-    assert "Number too low. Pease enter a number on the menu (1-7)" in output
+    assert "Number too low. Please enter a number from the menu (1-7)" in output
 
 def test_main_menu_number_too_high(monkeypatch, capsys):
     
@@ -49,7 +49,7 @@ def test_main_menu_number_too_high(monkeypatch, capsys):
     output = capsys.readouterr().out
 
     assert result == 1
-    assert "Number too high. Pease enter a number on the menu (1-7)" in output
+    assert "Number too high. Please enter a number from the menu (1-7)" in output
 
 
 
@@ -93,7 +93,7 @@ def test_physical_menu_number_too_low(monkeypatch, capsys):
     output = capsys.readouterr().out
 
     assert result == 1
-    assert "Number too low. Pease enter a number on the menu (1-5)" in output
+    assert "Number too low. Please enter a number from the menu (1-5)" in output
 
 def test_physical_menu_number_too_high(monkeypatch, capsys):
     user_inputs = iter(["6", "1"])
@@ -105,7 +105,7 @@ def test_physical_menu_number_too_high(monkeypatch, capsys):
     output = capsys.readouterr().out
 
     assert result == 1
-    assert "Number too high. Pease enter a number on the menu (1-5)" in output
+    assert "Number too high. Please enter a number from the menu (1-5)" in output
 
 # run tests from parent folder with:
 # python3 -m pytest tests/menu_input_test.py -v
