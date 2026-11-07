@@ -34,10 +34,6 @@ class GraphBuild:
             for director_node in director_nodes:
                 self.graph.connections(movie_node, director_node)
 
-            for actor_node in actor_nodes:
-                for director_node in director_nodes:
-                    self.graph.connections(actor_node, director_node)
-
             for genre in genre_nodes:
                 self.graph.connections(movie_node, genre)
 
@@ -47,7 +43,7 @@ class GraphBuild:
     def dfs(self, start_node):
         seen = set()
         frequency = defaultdict(int)
-        top_nodes = 4
+        top_nodes = 3
         def visit(node):
             seen.add(node)
             for neighbor in self.graph.adjacency[node]:

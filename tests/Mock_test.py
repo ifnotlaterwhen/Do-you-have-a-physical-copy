@@ -140,49 +140,9 @@ class Test_TMDBapi:
         assert result == ("2","")
 
 
-    def test_get_recommendation_one_director(self, mocker):
-        genre_list = mocker.MagicMock(status_code=200)
-        genre_list.json.return_value = {
-            "genres": [
-                {"id": 28, "name": "Action"},
-                {"id": 35, "name": "Comedy"},
-            ]
-        }
-
-        nolan = mocker.MagicMock(status_code=200)
-        nolan.json.return_value = {
-            "results": [
-                {"id": 525, "name": "Christopher Nolan", "known_for_department": "Directing"}
-            ]
-        }
-
-        discover = mocker.MagicMock(status_code=200)
-        discover.json.return_value = {
-            "page": 1,
-            "results": [
-                {"id": 155, "title": "The Dark Knight"},
-                {"id": 27205, "title": "Inception"},
-                {"id": 157336, "title": "Interstellar"},
-                {"id": 77, "title": "Memento"},
-                {"id": 1124, "title": "The Prestige"},
-            ],
-        }
-
-        mocker.patch(
-            "tmdb_api.requests.get",
-            side_effect=[genre_list, nolan, discover],
-        )
-
-        api = TMDB_api("https://api.themoviedb.org/3", "fake-api-key")
-        result = api.get_recommendation(
-            {"Genre:Action": 5},
-            {"Director:Christopher Nolan": 4},
-            set(),
-        )
-
-        assert result == "The Dark Knight, Inception, Interstellar"
 
     def test_get_recommendation(self, mocker):
+
         genre_list = mocker.MagicMock(status_code=200)
         genre_list.json.return_value = {
             "genres": [

@@ -376,13 +376,18 @@ class FilmDB:
                             WHEN my_films.dvd_owned = TRUE THEN 'DVD'
                             WHEN my_films.bluray_owned = TRUE THEN 'bluray'
                             WHEN my_films.`4k_bluray_owned` = TRUE THEN '4k_bluray'
+                            ELSE "Not owned"
                         END AS owned_copy
                     FROM my_films
                     JOIN film_info
                         ON my_films.my_film_id = film_info.my_film_id
                     WHERE film_info.title = %s
                 """, (movie,))
-                return cur.fetchone()
+                data = cur.fetchone()
+
+                return data["owned_copy"]
+
+
 
     def how_to_watch(self, film_id):
         with self.db_manager.get_connection() as db:
