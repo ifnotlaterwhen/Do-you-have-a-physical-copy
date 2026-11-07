@@ -148,14 +148,11 @@ def how_watch():
         return None
 
     streaming = requests.get(f"http://127.0.0.1:5000/api/how-to-watch/{movie_title}")
-    owned = requests.get(f"http://127.0.0.1:5000/api/owned-physical/{movie_title}")
-    if owned.status_code == 200:
-        owned_copy = owned.json()
-    else:
-        owned_copy = None
-
-    if owned_copy:
-        print(f"You have {movie_title} on {owned_copy}")
+    owned = requests.get(f"http://127.0.0.1:5000/api/owned-physical/{movie_title}").json()
+    if len(owned) != 0:
+        print(f"You have {movie_title} on:")
+        for copy in owned:
+            print("-", copy)
     else:
         print(f"You do not own {movie_title}. But...")
 
