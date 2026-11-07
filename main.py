@@ -3,13 +3,6 @@ from pprint import pprint
 from app import how_to_watch
 from tabulate import tabulate
 
-available_subscriptions = [
-    "Netflix",
-    "Disney+",
-    "Amazon Prime Video",
-    "Apple TV+",
-    "NOW"
-]
 
 class ValueTooLow(Exception):
     pass
@@ -349,6 +342,14 @@ def view_subscription():
  
 
 def adjust_subscription():
+    available_subscriptions = [
+        "Netflix",
+        "Prime Video",
+        "Disney+",
+        "NOW",
+        "Apple TV+"
+    ]
+
     while True:
         print("\n--- Manage Subscriptions ---")
 
