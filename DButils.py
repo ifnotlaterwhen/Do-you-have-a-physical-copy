@@ -196,16 +196,24 @@ class FilmDB:
         self.db_manager = DB_manager()
 
     def fetch_all_movies(self):
+        return self.fetch_movies()
+
+    def fetch_movies(self, watched_only=False):
         with self.db_manager.get_connection() as db:
             with db.cursor() as cur:
                 cur.execute(f"USE {self.db_name}")
-                cur.execute("""
-                SELECT film_info.title
-                FROM film_info
-                INNER JOIN my_films 
-                ON film_info.my_film_id = my_films.my_film_id
-                """)
-                
+
+                query = """
+                    SELECT film_info.title
+                    FROM film_info
+                    INNER JOIN my_films
+                    ON film_info.my_film_id = my_films.my_film_id
+                """
+
+                if watched_only:
+                    query += " WHERE my_films.watched = TRUE"
+
+                cur.execute(query)
                 return cur.fetchall()
 
 # olivia's note : I have switched to left join across the two methods below
@@ -329,60 +337,18 @@ class FilmDB:
 #                        SEE WATCHED FILMS
 # ===================================================================
 
+# fetch_watched_movies now uses fetch_movies(watched_only=True).
+# Tested successfully
+
     def fetch_watched_movies(self):
-        with self.db_manager.get_connection() as db:
-            with db.cursor() as cur:
-                cur.execute(f"USE {self.db_name}")
-                cur.execute("""
-                SELECT film_info.title
-                FROM film_info
-                INNER JOIN my_films ON
-                film_info.my_film_id = my_films.my_film_id
-                WHERE watched = True
-                """)
-                flat = list(chain.from_iterable(cur.fetchall()))
-                return flat
+        return [row[0] for row in self.fetch_movies(watched_only=True)]
 
 # ===================================================================
 #                        SEE PHYSICAL COPIES
 # =================================================================== 
 
-    def fetch_physical_copies(self):
-        with self.db_manager.get_connection() as db:
-            with db.cursor() as cur:
-                cur.execute(f"USE {self.db_name}")
-                cur.execute("""
-                    SELECT
-                        film_info.title,
-                        my_films.dvd_owned,
-                        my_films.bluray_owned,
-                        my_films.`4k_bluray_owned`
-                    FROM film_info
-                    INNER JOIN my_films 
-                    ON film_info.my_film_id = my_films.my_film_id
-                    WHERE my_films.dvd_owned = True
-                        OR my_films.bluray_owned = True
-                        OR my_films.`4k_bluray_owned` = True
-                """)
-                return cur.fetchall()
-
-    def fetch_owned_copy(self, movie):
-        with self.db_manager.get_connection() as db:
-            with db.cursor() as cur:
-                cur.execute(f"USE {self.db_name}")
-                cur.execute("""
-                    SELECT
-                        CASE
-                            WHEN my_films.dvd_owned = TRUE THEN 'DVD'
-                            WHEN my_films.bluray_owned = TRUE THEN 'bluray'
-                            WHEN my_films.`4k_bluray_owned` = TRUE THEN '4k_bluray'
-                        END AS owned_copy
-                    FROM my_films
-                    JOIN film_info
-                        ON my_films.my_film_id = film_info.my_film_id
-                    WHERE film_info.title = %s
-                """, (movie,))
-                return cur.fetchone()
+# fetch_physical_copies, fetch_owned_copy cut.
+# Physical copy updates are handled by add_physical_copy.
 
     def how_to_watch(self, film_id):
         with self.db_manager.get_connection() as db:
@@ -395,6 +361,7 @@ class FilmDB:
                 """, (film_id,))
 
                 return cur.fetchone()
+                
                 
 # ===================================================================
 #                         ADD PHYSICAL COPY
@@ -443,10 +410,12 @@ class FilmDB:
                 """, (movie,))
                 return cur.fetchone()
 
-    # ===================================================================
+# ===================================================================
 #                         ADD WATCHED FILM
 # ===================================================================
 
+# Potential to be cut?
+    
     def add_watched_film(self, film_id):
         with self.db_manager.get_connection() as db:
             with db.cursor() as cur:
@@ -509,4 +478,4 @@ def run():
     test_db.seed_db_mock()
 
 if __name__ == "__main__":
-    run()
+    test_movie_fetching()
