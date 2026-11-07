@@ -107,7 +107,7 @@ def show_DB():
     all_movies = requests.get(f"{base_url}/api/overview") #See app.py for this route
     table = tabulate(all_movies.json()["data"], headers=['Title', 'Genre', 'Directed by', 'Starring','4k Blu-ray', 'Blu-ray', 'DVD'], tablefmt='markdown')
     # print(all_movies.json()["data"])
-    print(table)
+    print("\n", table)
     return return_to_menu()
 
 # ===================================================================
