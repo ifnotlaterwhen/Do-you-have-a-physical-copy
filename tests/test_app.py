@@ -22,14 +22,22 @@ def test_missing_title_returns_400(client):
 @patch("app.dbutils")
 @patch("app.search_tmdb")
 def test_new_film_is_saved(mock_search, mock_dbutils, client):
-    mock_search.return_value = {"id": 77, "title": "Memento", "overview": "Plot"}
+    film = {
+        "tmdb_id": 77,
+        "title": "Memento",
+        "overview": "Plot",
+        "genres": ["Thriller"],
+        "directors": ["Christopher Nolan"],
+        "actors": ["Guy Pearce"]
+    }
+    mock_search.return_value = film
     mock_dbutils.fetch_all_movies.return_value = [("Inception",)]
 
     response = client.post("/api/all/watched_film", json={"title": "memento"})
 
     assert response.status_code == 200
     assert response.get_json() == {"title": "Memento", "watched": True}
-    mock_dbutils.new_watched_film.assert_called_once_with("Memento", 77, "Plot")
+    mock_dbutils.new_watched_film.assert_called_once_with(film)
 
 
 @patch("app.dbutils")

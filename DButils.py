@@ -276,7 +276,7 @@ class FilmDB:
 
             db.commit()
 
-    def new_watched_film(self, title, tmdb_id, overview=None):
+    def new_watched_film(self, film):
         with self.db_manager.get_connection() as db:
             with db.cursor() as cur:
                 cur.execute(f"USE {self.db_name}")
@@ -284,10 +284,42 @@ class FilmDB:
                 cur.execute("INSERT INTO my_films (watched) VALUES (%s)", (True,))
                 my_film_id = cur.lastrowid    
         
-                cur.execute(
-                    "INSERT INTO film_info (my_film_id, api_film_TMDB_id,title, overview) VALUES (%s, %s, %s, %s)",
-                    (my_film_id, tmdb_id, title, overview),
-                )
+                cur.execute("""
+                    INSERT INTO film_info (my_film_id, api_film_TMDB_id,title, overview) 
+                    VALUES (%s, %s, %s, %s)""",
+                   (my_film_id, 
+                   film["tmdb_id"], film["title"],film["overview"]))
+                film_id = cur.lastrowid
+
+                for name in film["genres"]:
+                    cur.execute("SELECT genre_id FROM film_genres WHERE genre_name = %s", (name,))
+                    row = cur.fetchone()
+                    if row:
+                        genre_id = row[0]
+                    else:
+                        cur.execute("INSERT INTO film_genres (genre_name) VALUES (%s)", (name,))
+                        genre_id = cur.lastrowid
+                    cur.execute("INSERT INTO junc_genres (film_id, genre_id) VALUES (%s, %s)", (film_id, genre_id))
+
+                for name in film["directors"]:
+                    cur.execute("SELECT director_id FROM directors WHERE name = %s", (name,))
+                    row = cur.fetchone()
+                    if row:
+                        director_id = row[0]
+                    else:
+                        cur.execute("INSERT INTO directors (name) VALUES (%s)", (name,))
+                        director_id = cur.lastrowid
+                    cur.execute("INSERT INTO junc_directors (director_id, film_id) VALUES (%s, %s)", (director_id, film_id))
+
+                for name in film["actors"]:
+                    cur.execute("SELECT actor_id FROM actors WHERE name = %s", (name,))
+                    row = cur.fetchone()
+                    if row:
+                        actor_id = row[0]
+                    else:
+                        cur.execute("INSERT INTO actors (name) VALUES (%s)", (name,))
+                        actor_id = cur.lastrowid
+                    cur.execute("INSERT INTO junc_actors (actor_id, film_id) VALUES (%s, %s)", (actor_id, film_id))
             
             db.commit()
                 
