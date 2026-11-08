@@ -196,16 +196,24 @@ class FilmDB:
         self.db_manager = DB_manager()
 
     def fetch_all_movies(self):
+        return self.fetch_movies()
+
+    def fetch_movies(self, watched_only=False):
         with self.db_manager.get_connection() as db:
             with db.cursor() as cur:
                 cur.execute(f"USE {self.db_name}")
-                cur.execute("""
-                SELECT film_info.title
-                FROM film_info
-                INNER JOIN my_films 
-                ON film_info.my_film_id = my_films.my_film_id
-                """)
-                
+
+                query = """
+                    SELECT film_info.title
+                    FROM film_info
+                    INNER JOIN my_films
+                    ON film_info.my_film_id = my_films.my_film_id
+                """
+
+                if watched_only:
+                    query += " WHERE my_films.watched = TRUE"
+
+                cur.execute(query)
                 return cur.fetchall()
 
 # olivia's note : I have switched to left join across the two methods below
@@ -245,36 +253,9 @@ class FilmDB:
                 """)
                 return [row for row in cur.fetchall()]
 
-    def fetch_film_by_id(self, fetch_film_id):
-        with self.db_manager.get_connection() as db:
-            with db.cursor(dictionary=True) as cur:
-                cur.execute(f"USE {self.db_name}")
-                cur.execute("""
-                SELECT title, overview
-                FROM film_info
-                INNER JOIN my_films 
-                ON film_info.my_film_id = my_films.my_film_id
-                WHERE my_films.my_film_id = %s
-                """, (fetch_film_id,))
-                return cur.fetchone()
-
-
 # ===================================================================
 #                         ADD WATCHED FILM
 # ===================================================================
-
-    def add_watched_film(self, film_id):
-        with self.db_manager.get_connection() as db:
-            with db.cursor() as cur:
-                cur.execute(f"USE {self.db_name}")
-
-                cur.execute("""
-                    UPDATE my_films
-                    SET watched = TRUE
-                    WHERE my_film_id = %s
-                """, (film_id,))
-
-            db.commit()
 
     def new_watched_film(self, film):
         with self.db_manager.get_connection() as db:
@@ -329,19 +310,11 @@ class FilmDB:
 #                        SEE WATCHED FILMS
 # ===================================================================
 
+# fetch_watched_movies now uses fetch_movies(watched_only=True).
+# Tested successfully
+
     def fetch_watched_movies(self):
-        with self.db_manager.get_connection() as db:
-            with db.cursor() as cur:
-                cur.execute(f"USE {self.db_name}")
-                cur.execute("""
-                SELECT film_info.title
-                FROM film_info
-                INNER JOIN my_films ON
-                film_info.my_film_id = my_films.my_film_id
-                WHERE watched = True
-                """)
-                flat = list(chain.from_iterable(cur.fetchall()))
-                return flat
+        return [row[0] for row in self.fetch_movies(watched_only=True)]
 
 # ===================================================================
 #                        SEE PHYSICAL COPIES
@@ -394,18 +367,6 @@ class FilmDB:
                 if copies[2]:
                     list_of_copies.append("4K Blu-ray")
                 return list_of_copies
-
-    def how_to_watch(self, film_id):
-        with self.db_manager.get_connection() as db:
-            with db.cursor(dictionary=True) as cur:
-                cur.execute(f"USE {self.db_name}")
-                cur.execute("""
-                    SELECT title, api_film_TMDB_id
-                    FROM film_info
-                    WHERE my_film_id = %s
-                """, (film_id,))
-
-                return cur.fetchone()
                 
 # ===================================================================
 #                         ADD PHYSICAL COPY
@@ -433,22 +394,6 @@ class FilmDB:
                     SET mf.`{physical_format}` = TRUE
                     WHERE fi.title = %s
                 """, (title,))
-
-            db.commit()
-
-    # ===================================================================
-#                         ADD WATCHED FILM
-# ===================================================================
-
-    def add_watched_film(self, film_id):
-        with self.db_manager.get_connection() as db:
-            with db.cursor() as cur:
-                cur.execute(f"USE {self.db_name}")
-                cur.execute("""
-                    UPDATE my_films
-                    SET watched = TRUE
-                    WHERE my_film_id = %s
-                """, (film_id,))
 
             db.commit()
 
