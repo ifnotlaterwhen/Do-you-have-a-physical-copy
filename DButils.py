@@ -507,15 +507,6 @@ class FilmDB:
                 FROM subscriptions
                 WHERE active = TRUE""")
                 return cur.fetchall()
-    def fetch_all_subs(self):
-        with self.db_manager.get_connection() as db:
-            with db.cursor(dictionary=True) as cur:
-                cur.execute(f"USE {self.db_name}")
-                cur.execute("""
-                    SELECT subscription_id, service, service_TMDB_id, active
-                    FROM subscriptions
-                """)
-                return cur.fetchall()
 
     def physical_copy(self, movie):
         with self.db_manager.get_connection() as db:
