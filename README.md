@@ -6,7 +6,7 @@ For our CFG group project, we were tasked with developing a Flask-based applicat
 
 ### 1: Installation instructions
 
-1. Run `pyhthon -m venv .venv` at the root of the repository to create a virtual environment.
+1. Run `python -m venv .venv` at the root of the repository to create a virtual environment.
 2. Run `source .venv/bin/activate` to start the virtual environment.
 2. Run `pip install -r requirements.txt` to install the packages needed for this project.
 
@@ -45,7 +45,6 @@ We have mock data to save you the trouble of adding film manually, so you can st
 
 ## Reid intro
 
-Hey there, I'm Reid and I'll be working on this group project with you. My "hobbies" include making my house less broken.
 
 * Acted as project lead, coordinating efforts across the team and leading regular meetings
 * Worked with the team on the initial database schema
@@ -54,7 +53,6 @@ Hey there, I'm Reid and I'll be working on this group project with you. My "hobb
 
 ## Reese intro
 
-Reid is watching me and forcing me to write this intro, I really don't want to. Please help.
 
 * Led project architecture, database setup and module organisation.
 * Established testing infrastructure, GitHub Actions and MySQL integration.
@@ -63,31 +61,23 @@ Reid is watching me and forcing me to write this intro, I really don't want to. 
 
 
 ## Olivia intro
-
-Hi, my name is Olivia and one of my hobbies is introducing myself.
-
-* Cowrote the FilmDB queries in DButils.py and restructured the file into separate setup (seedDB) and query (FilmDB) classes
 * Fixed query bugs (missing joins, duplicates, SQL injection risk) and identified duplicate classes and methods
 * Set up the initial config.py database connection
 
 
 ## Tansy Intro
-Hi, I'm Tansy and I will be taking part in this project. My Hobbies are avoiding hostage situations.
 
 * Worked alongside on initial functions setup in DButils.py
 * Contributed to refactoring repeated queries and organising database functions with teammates streamline.
 
 
 ## Carina Intro
-Hey, it's me Carina. Looking forward to getting started with the group project. what I like: My privacy.
 
 * Developed the Find where to watch feature, which returns physical copies  the user owns and where to stream Movies.
 * Developed a Film recommendations feature based on viewing preferences.
 
 
 ## Stéphanie Intro
-Hey, I'm Stéphanie. And I'm just here for the good vibes.
-Let's go Tech Girlies
 
 * Developed the Track a new film feature
 * Worked on the initial database schema with the team
@@ -95,6 +85,5 @@ Let's go Tech Girlies
 
 
 ## Roxann Intro 
-Hi I am Roxann and I am excited to be a part of this group project. 
 
 * Developed the Subscription feature, allowing users to view, add and remove streaming subscriptions.
