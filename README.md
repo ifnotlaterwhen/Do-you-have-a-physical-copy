@@ -24,38 +24,77 @@ API_KEY=$YOUR_TMDB_API_KEY<br></p>
 
 ### 3. Running the app
 
-Once installation and setting up is completed, follow the instruction below every time you wish to start the application.   
-
+Once installation and setting up is completed, follow the instruction below every time you wish to start the application.  
+***Important note to project marker***:   
+If you wish to start the app with a database seeded with sample data, **follow section 4 before coming back to section 3**
 1. Run `python app.py` at the root of the repository to start the server.
 2. Run `python main.py` to start the application.
+
+### 4. Optional: Seeding the DB with sample data
+
+We have mock data to save you the trouble of adding film manually, so you can start experiencing the app straight away.  
+1. Follow section 1 and section 2
+1. Run `python DButils.py` at the root of the repo.
+2. Continue with section 3
 <br>
 <br>
        
 
 
-### 4. Meet the team!↓
+### 5. Meet the team!↓
 
 ## Reid intro
 
 Hey there, I'm Reid and I'll be working on this group project with you. My "hobbies" include making my house less broken.
 
+* Acted as project lead, coordinating efforts across the team and leading regular meetings
+* Worked with the team on the initial database schema
+* Developed the Add physical copy feature
+
+
 ## Reese intro
 
 Reid is watching me and forcing me to write this intro, I really don't want to. Please help.
+
+* Led project architecture, database setup and module organisation.
+* Established testing infrastructure, GitHub Actions and MySQL integration.
+* Reviewed code, supported debugging and coordinated integration across branches.
+* Developed the See tracked films feature.
+
 
 ## Olivia intro
 
 Hi, my name is Olivia and one of my hobbies is introducing myself.
 
+* Cowrote the FilmDB queries in DButils.py and restructured the file into separate setup (seedDB) and query (FilmDB) classes
+* Fixed query bugs (missing joins, duplicates, SQL injection risk) and identified duplicate classes and methods
+* Set up the initial config.py database connection
+
+
 ## Tansy Intro
 Hi, I'm Tansy and I will be taking part in this project. My Hobbies are avoiding hostage situations.
 
+* Worked alongside on initial functions setup in DButils.py
+* Contributed to refactoring repeated queries and organising database functions with teammates streamline.
+
+
 ## Carina Intro
 Hey, it's me Carina. Looking forward to getting started with the group project. what I like: My privacy.
+
+* Developed the Find where to watch feature, which returns physical copies  the user owns and where to stream Movies.
+* Developed a Film recommendations feature based on viewing preferences.
+
 
 ## Stéphanie Intro
 Hey, I'm Stéphanie. And I'm just here for the good vibes.
 Let's go Tech Girlies
 
+* Developed the Track a new film feature
+* Worked on the initial database schema with the team
+* Contributed in creating and tracking activity project log
+
+
 ## Roxann Intro 
 Hi I am Roxann and I am excited to be a part of this group project. 
+
+* Developed the Subscription feature, allowing users to view, add and remove streaming subscriptions.
