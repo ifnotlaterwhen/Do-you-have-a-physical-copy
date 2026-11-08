@@ -197,5 +197,34 @@ def new_user_init():
 #                         SUBSCRIPTIONS
 # ===================================================================
 
+@app.route("/api/subscriptions", methods=["GET"])
+def get_subscriptions():
+    subscriptions = dbutils.fetch_active_subs()
+    return jsonify({"data": subscriptions}), 200
+
+
+@app.route("/api/subscriptions", methods=["POST"])
+def add_subscription_api():
+    data = request.get_json(silent=True) or {}
+    service = data.get("service")
+
+    if not isinstance(service, str) or not service.strip():
+        return jsonify({"error": "Service is required"}), 400
+
+    dbutils.add_subscription(service.strip())
+    return jsonify({"message": "Subscription added"}), 201
+
+
+@app.route("/api/subscriptions", methods=["DELETE"])
+def remove_subscription_api():
+    data = request.get_json(silent=True) or {}
+    service = data.get("service")
+
+    if not isinstance(service, str) or not service.strip():
+        return jsonify({"error": "Service is required"}), 400
+
+    dbutils.remove_subscription(service.strip())
+    return jsonify({"message": "Subscription removed"}), 200
+
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
